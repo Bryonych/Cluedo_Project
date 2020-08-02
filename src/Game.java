@@ -16,13 +16,15 @@ public class Game
   //Game Attributes
   private Board board;
   private int dice;
-  private List players;
+  private List<Character> players = new ArrayList<Character>();
+  private List<Character> characters = new ArrayList<Character>();
   private Tuple murderDetails;
   private Character currentTurn;
   private Tuple suggestion;
   private Card refute;
   private Tuple accusation;
   private boolean gameWon;
+  private int numPlayers;
 
   //Game Associations
   private List<Board> boards;
@@ -32,98 +34,157 @@ public class Game
   //------------------------
   // CONSTRUCTOR
   //------------------------
+  public Game(){
+      this.board = createBoard();
+      this.numPlayers = getNumPlayers();
+      setPlayers();
+  }
 
-  public Game(Board aBoard, int aDice, List aPlayers, Tuple aMurderDetails, Character aCurrentTurn, Tuple aSuggestion, Card aRefute, Tuple aAccusation, boolean aGameWon)
-  {
-    board = aBoard;
-    dice = aDice;
-    players = aPlayers;
-    murderDetails = aMurderDetails;
-    currentTurn = aCurrentTurn;
-    suggestion = aSuggestion;
-    refute = aRefute;
-    accusation = aAccusation;
-    gameWon = aGameWon;
-    boards = new ArrayList<Board>();
-    tuples = new ArrayList<Tuple>();
-    cards = new ArrayList<Card>();
+  public Board createBoard(){
+    int x = 30;
+    int y = 30;
+    Cell[][] squares = new Cell[x][y];
+    for (int col = 0; col < x; col++){
+      for (int row = 0; row < y; row++){
+        if (row == 0 || row == 29 || col == 0 || col == 29){
+          squares[row][col] = new Cell(Cell.Room.WALL, col, row);
+        }
+        else if ((row < 8 && col == 7) || (row < 9 && col == 11) || (row < 9 && col == 18) || (row < 7 && col == 21)
+          || (row > 9 && row < 19 && col == 9) || (row > 8 && row < 16 && col == 21) || (row > 16 && row < 24 && col == 21)
+          || (row > 21 && col == 8) || (row > 20 && col == 11) || (row > 25 && col == 21)
+          || (row > 20 && col == 18)){
+
+          squares[row][col] = new Cell(Cell.Room.WALL, col, row);
+        }
+        else if ((row == 7 &&  col < 8) || (row == 8 && col > 10 && col < 19)|| (row == 6 && col > 21)
+          || (row == 10 && col < 10) || (row == 18 && col < 10) || (row == 9 && col > 21)
+          || (row == 15 && col > 21) || (row == 17 && col > 20) || (row == 23 && col > 20)
+          || (row == 22 && col < 9) || (row == 20 && col > 10 && col < 19) || (row == 26 && col > 20)){
+
+          squares[row][col] = new Cell(Cell.Room.WALL, col, row);
+        }
+        else if (row > 10 && row < 18 && col > 11 && col < 19){
+          squares[row][col] = new Cell(Cell.Room.WALL, col, row);
+        }
+        else if (row < 7 && col < 7){
+          squares[row][col] = new Cell(Cell.Room.KITCHEN, col, row);
+        }
+        else if (row < 8 && col > 12 && col < 17){
+          squares[row][col] = new Cell(Cell.Room.BALLROOM, col, row);
+        }
+        else if (row < 6 && col > 22){
+          squares[row][col] = new Cell(Cell.Room.CONSERVATORY, col, row);
+        }
+        else if (row > 10 && row < 18 && col < 9){
+          squares[row][col] = new Cell(Cell.Room.DINING, col, row);
+        }
+        else if (row > 9 && row < 15 && col > 22){
+          squares[row][col] = new Cell(Cell.Room.BILLIARD, col, row);
+        }
+        else if (row > 18 && row < 22 && col > 20){
+          squares[row][col] = new Cell(Cell.Room.LIBRARY, col, row);
+        }
+        else if (row > 22 && col < 8){
+          squares[row][col] = new Cell(Cell.Room.LOUNGE, col, row);
+        }
+        else if (row > 20 && col > 11 && col < 18){
+          squares[row][col] = new Cell(Cell.Room.HALL, col, row);
+        }
+        else if (row > 25 && col > 20){
+          squares[row][col] = new Cell(Cell.Room.STUDY, col, row);
+        }
+        else {
+          squares[row][col] = new Cell(Cell.Room.HALLWAY, col, row);
+        }
+      }
+    }
+    squares = setDoorsAndStart(squares);
+    return new Board(squares);
+  }
+
+  public Cell[][] setDoorsAndStart(Cell[][] squares){
+
+    squares[0][10].changeType(Cell.Room.START);
+    squares[0][19].changeType(Cell.Room.START);
+    squares[7][29].changeType(Cell.Room.START);
+    squares[20][0].changeType(Cell.Room.START);
+    squares[29][9].changeType(Cell.Room.START);
+    squares[24][29].changeType(Cell.Room.START);
+    squares[7][5].changeType(Cell.Room.DOOR);
+    squares[5][11].changeType(Cell.Room.DOOR);
+    squares[8][16].changeType(Cell.Room.DOOR);
+    squares[5][18].changeType(Cell.Room.DOOR);
+    squares[5][21].changeType(Cell.Room.DOOR);
+    squares[13][9].changeType(Cell.Room.DOOR);
+    squares[18][7].changeType(Cell.Room.DOOR);
+    squares[11][21].changeType(Cell.Room.DOOR);
+    squares[15][27].changeType(Cell.Room.DOOR);
+    squares[17][25].changeType(Cell.Room.DOOR);
+    squares[20][21].changeType(Cell.Room.DOOR);
+    squares[22][7].changeType(Cell.Room.DOOR);
+    squares[20][14].changeType(Cell.Room.DOOR);
+    squares[20][15].changeType(Cell.Room.DOOR);
+    squares[23][18].changeType(Cell.Room.DOOR);
+    squares[26][22].changeType(Cell.Room.DOOR);
+    return squares;
+
+  }
+
+  public int getNumPlayers(){
+
+    Scanner sc = new Scanner(System.in);
+    System.out.println("How many players?");
+    int answer = 0;
+    try {
+      answer = sc.nextInt();
+    } catch(InputMismatchException e) { System.out.println("Invalid number"); }
+    if (answer < 2){
+      System.out.println("Number of players needs to be 2-6");
+      getNumPlayers();
+    }
+    return answer;
+  }
+
+  public void setPlayers(){
+    Character white = new Character("Mrs White", board.getCells()[0][10]);
+    Character green = new Character("Mr Green", board.getCells()[0][19]);
+    Character peacock = new Character("Mrs Peacock", board.getCells()[7][29]);
+    Character plum = new Character("Prof Plum", board.getCells()[24][29]);
+    Character scarlett = new Character("Miss Scarlet", board.getCells()[29][9]);
+    Character mustard = new Character("Col Mustard", board.getCells()[20][0]);
+    characters.add(white);
+    characters.add(green);
+    characters.add(peacock);
+    characters.add(plum);
+    characters.add(scarlett);
+    characters.add(mustard);
+    for (int i = 0; i < numPlayers; i++){
+      players.add(characters.get(i));
+    }
+  }
+
+  public void printBoard(){
+    Cell[][] squares = board.getCells();
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < 30; i++){
+      for (int j = 0; j < 30; j++){
+         sb.append(squares[i][j]);
+      }
+      sb.append("\n");
+    }
+    System.out.println(sb);
+  }
+
+  public static void main(String[] args){
+    Game game = new Game();
+    game.printBoard();
   }
 
   //------------------------
   // INTERFACE
   //------------------------
 
-  public boolean setBoard(Board aBoard)
-  {
-    boolean wasSet = false;
-    board = aBoard;
-    wasSet = true;
-    return wasSet;
-  }
 
-  public boolean setDice(int aDice)
-  {
-    boolean wasSet = false;
-    dice = aDice;
-    wasSet = true;
-    return wasSet;
-  }
-
-  public boolean setPlayers(List aPlayers)
-  {
-    boolean wasSet = false;
-    players = aPlayers;
-    wasSet = true;
-    return wasSet;
-  }
-
-  public boolean setMurderDetails(Tuple aMurderDetails)
-  {
-    boolean wasSet = false;
-    murderDetails = aMurderDetails;
-    wasSet = true;
-    return wasSet;
-  }
-
-  public boolean setCurrentTurn(Character aCurrentTurn)
-  {
-    boolean wasSet = false;
-    currentTurn = aCurrentTurn;
-    wasSet = true;
-    return wasSet;
-  }
-
-  public boolean setSuggestion(Tuple aSuggestion)
-  {
-    boolean wasSet = false;
-    suggestion = aSuggestion;
-    wasSet = true;
-    return wasSet;
-  }
-
-  public boolean setRefute(Card aRefute)
-  {
-    boolean wasSet = false;
-    refute = aRefute;
-    wasSet = true;
-    return wasSet;
-  }
-
-  public boolean setAccusation(Tuple aAccusation)
-  {
-    boolean wasSet = false;
-    accusation = aAccusation;
-    wasSet = true;
-    return wasSet;
-  }
-
-  public boolean setGameWon(boolean aGameWon)
-  {
-    boolean wasSet = false;
-    gameWon = aGameWon;
-    wasSet = true;
-    return wasSet;
-  }
 
   public Board getBoard()
   {
@@ -264,11 +325,7 @@ public class Game
   {
     return 0;
   }
-  /* Code from template association_AddManyToOne */
-  public Board addBoard(List aItems, List aPlayers, Room[] allRooms, Weapon[] allWeapons, Character[] allCharacters)
-  {
-    return new Board(aItems, aPlayers, this, allRooms, allWeapons, allCharacters);
-  }
+
 
   public boolean addBoard(Board aBoard)
   {
