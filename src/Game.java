@@ -104,12 +104,12 @@ public class Game
 
   public Cell[][] setDoorsAndStart(Cell[][] squares){
 
-    squares[0][10].changeType(Cell.Room.START);
-    squares[0][19].changeType(Cell.Room.START);
-    squares[7][29].changeType(Cell.Room.START);
-    squares[20][0].changeType(Cell.Room.START);
-    squares[29][9].changeType(Cell.Room.START);
-    squares[24][29].changeType(Cell.Room.START);
+    squares[0][10].changeType(Cell.Room.WHITE);
+    squares[0][19].changeType(Cell.Room.GREEN);
+    squares[7][29].changeType(Cell.Room.PEACOCK);
+    squares[20][0].changeType(Cell.Room.PLUM);
+    squares[29][9].changeType(Cell.Room.SCARLETT);
+    squares[24][29].changeType(Cell.Room.MUSTARD);
     squares[7][5].changeType(Cell.Room.DOOR);
     squares[5][11].changeType(Cell.Room.DOOR);
     squares[8][16].changeType(Cell.Room.DOOR);
@@ -161,18 +161,41 @@ public class Game
     for (int i = 0; i < numPlayers; i++){
       players.add(characters.get(i));
     }
+
   }
 
   public void printBoard(){
     Cell[][] squares = board.getCells();
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < 30; i++){
+      if (i == 13){
+        sb.append("Dining ");
+      }
+      else if (i == 14){
+        sb.append("Room   ");
+      }
+      else {
+        sb.append("       ");
+      }
       for (int j = 0; j < 30; j++){
          sb.append(squares[i][j]);
       }
-      sb.append("\n");
+      if (i == 11){
+        sb.append(" Billiard");
+      }
+      else if (i == 12){
+        sb.append( " Room");
+      }
+      else if (i == 20){
+        sb.append(" Library");
+      }
+      if (i != 29) {
+        sb.append("\n");
+      }
     }
+    System.out.println("         Kitchen               Ball Room           Conservatory");
     System.out.println(sb);
+    System.out.println("         Lounge                Hall                Study");
   }
 
   public static void main(String[] args){
