@@ -19,38 +19,28 @@ public class WeaponCard extends Card
   // CONSTRUCTOR
   //------------------------
 
-  public WeaponCard(Game aGame, String aName)
+  public WeaponCard(String name)
   {
-    super(aGame);
-    name = aName;
+    super(name);
+    this.name = name;
   }
 
   //------------------------
   // INTERFACE
   //------------------------
 
-  public boolean setName(String aName)
-  {
-    boolean wasSet = false;
-    name = aName;
-    wasSet = true;
-    return wasSet;
-  }
 
   public String getName()
   {
     return name;
   }
 
-  public void delete()
-  {
-    super.delete();
-  }
 
 
   public String toString()
   {
-    return super.toString() + "["+
-            "name" + ":" + getName()+ "]";
+    return " ------------------- \n" +
+            " Card: " + name + "\n" +
+            " ------------------- ";
   }
 }
