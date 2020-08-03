@@ -18,6 +18,10 @@ public class Game
   private int dice;
   private List<Character> players = new ArrayList<Character>();
   private List<Character> characters = new ArrayList<Character>();
+  private List<Card> allCards = new ArrayList<Card>();
+  private List<CharacterCard> charCards = new ArrayList<CharacterCard>();
+  private List<RoomCard> roomCards = new ArrayList<RoomCard>();
+  private List<WeaponCard> weaponCards = new ArrayList<WeaponCard>();
   private Tuple murderDetails;
   private Character currentTurn;
   private Tuple suggestion;
@@ -29,17 +33,22 @@ public class Game
   //Game Associations
   private List<Board> boards;
   private List<Tuple> tuples;
-  private List<Card> cards;
 
   //------------------------
   // CONSTRUCTOR
   //------------------------
-  public Game(){
+  public Game(int numPlayers){
       this.board = createBoard();
-      this.numPlayers = getNumPlayers();
+      this.numPlayers = numPlayers;
       setPlayers();
+      createCards();
+      murderDetails = setMurderDetails();
   }
 
+  /**
+   * Creates the cells that make up the initial board
+   * @return
+   */
   public Board createBoard(){
     int x = 30;
     int y = 30;
@@ -99,9 +108,15 @@ public class Game
       }
     }
     squares = setDoorsAndStart(squares);
+    squares = setWeapons(squares);
     return new Board(squares);
   }
 
+  /**
+   * Sets doors and start cells in the walls
+   * @param squares
+   * @return
+   */
   public Cell[][] setDoorsAndStart(Cell[][] squares){
 
     squares[0][10].changeType(Cell.Room.WHITE);
@@ -129,22 +144,25 @@ public class Game
     return squares;
 
   }
+  //Handled in GUI
+//  public int getNumPlayers(){
+//
+//    Scanner sc = new Scanner(System.in);
+//    System.out.println("How many players?");
+//    int answer = 0;
+//    try {
+//      answer = sc.nextInt();
+//    } catch(InputMismatchException e) { System.out.println("Invalid number"); }
+//    if (answer < 2){
+//      System.out.println("Number of players needs to be 2-6");
+//      getNumPlayers();
+//    }
+//    return answer;
+//  }
 
-  public int getNumPlayers(){
-
-    Scanner sc = new Scanner(System.in);
-    System.out.println("How many players?");
-    int answer = 0;
-    try {
-      answer = sc.nextInt();
-    } catch(InputMismatchException e) { System.out.println("Invalid number"); }
-    if (answer < 2){
-      System.out.println("Number of players needs to be 2-6");
-      getNumPlayers();
-    }
-    return answer;
-  }
-
+  /**
+   * Creates the Characters and players
+   */
   public void setPlayers(){
     Character white = new Character("Mrs White", board.getCells()[0][10]);
     Character green = new Character("Mr Green", board.getCells()[0][19]);
@@ -164,43 +182,131 @@ public class Game
 
   }
 
-  public void printBoard(){
-    Cell[][] squares = board.getCells();
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < 30; i++){
-      if (i == 13){
-        sb.append("Dining ");
-      }
-      else if (i == 14){
-        sb.append("Room   ");
-      }
-      else {
-        sb.append("       ");
-      }
-      for (int j = 0; j < 30; j++){
-         sb.append(squares[i][j]);
-      }
-      if (i == 11){
-        sb.append(" Billiard");
-      }
-      else if (i == 12){
-        sb.append( " Room");
-      }
-      else if (i == 20){
-        sb.append(" Library");
-      }
-      if (i != 29) {
-        sb.append("\n");
-      }
+  /**
+   * Creates the cards and adds them to the lists
+   */
+  public void createCards(){
+    for (Character c : characters){
+        CharacterCard newCard = new CharacterCard(c.getName());
+        allCards.add(newCard);
+        charCards.add(newCard);
     }
-    System.out.println("         Kitchen               Ball Room           Conservatory");
-    System.out.println(sb);
-    System.out.println("         Lounge                Hall                Study");
+    RoomCard kitchen = new RoomCard("Kitchen");
+    allCards.add(kitchen);
+    roomCards.add(kitchen);
+    RoomCard ballRoom = new RoomCard("Ball Room");
+    allCards.add(ballRoom);
+    roomCards.add(ballRoom);
+    RoomCard conservatory = new RoomCard("Conservatory");
+    allCards.add(conservatory);
+    roomCards.add(conservatory);
+    RoomCard dining = new RoomCard("Dining Room");
+    allCards.add(dining);
+    roomCards.add(dining);
+    RoomCard billiard = new RoomCard("Billiard Room");
+    allCards.add(billiard);
+    roomCards.add(billiard);
+    RoomCard library = new RoomCard("Library");
+    allCards.add(library);
+    roomCards.add(library);
+    RoomCard lounge = new RoomCard("Lounge");
+    allCards.add(lounge);
+    roomCards.add(lounge);
+    RoomCard hall = new RoomCard("Hall");
+    allCards.add(hall);
+    roomCards.add(hall);
+    RoomCard study = new RoomCard("Study");
+    allCards.add(study);
+    roomCards.add(study);
+    WeaponCard candlestick = new WeaponCard("Candlestick");
+    allCards.add(candlestick);
+    weaponCards.add(candlestick);
+    WeaponCard dagger = new WeaponCard("Dagger");
+    allCards.add(dagger);
+    weaponCards.add(dagger);
+    WeaponCard leadPipe = new WeaponCard("Lead Pipe");
+    allCards.add(leadPipe);
+    weaponCards.add(leadPipe);
+    WeaponCard revolver = new WeaponCard("Revolver");
+    allCards.add(revolver);
+    weaponCards.add(revolver);
+    WeaponCard rope = new WeaponCard("Rope");
+    allCards.add(rope);
+    weaponCards.add(rope);
+    WeaponCard spanner = new WeaponCard("Spanner");
+    allCards.add(spanner);
+    weaponCards.add(spanner);
   }
 
+  /**
+   * Picks a random card from each list to be the murder details
+   * @return
+   */
+  public Tuple setMurderDetails(){
+    Random rand = new Random();
+    CharacterCard murderer = charCards.get(rand.nextInt(charCards.size()));
+    RoomCard scene = roomCards.get(rand.nextInt(roomCards.size()));
+    WeaponCard weapon = weaponCards.get(rand.nextInt(weaponCards.size()));
+    Tuple envelope = new Tuple(murderer, weapon, scene);
+    System.out.println(envelope.getMurderer());
+    System.out.println(envelope.getCrimeScene());
+    System.out.println(envelope.getWeapon());
+    return envelope;
+  }
+
+  /**
+   * Puts the weapons in the rooms
+   * @param squares
+   * @return
+   */
+  public Cell[][] setWeapons(Cell[][] squares){
+
+    squares[2][2].changeType(Cell.Room.CANDLESTICK);
+    squares[2][14].changeType(Cell.Room.DAGGER);
+    squares[2][27].changeType(Cell.Room.LEADPIPE);
+    squares[13][2].changeType(Cell.Room.REVOLVER);
+    squares[13][27].changeType(Cell.Room.ROPE);
+    squares[20][27].changeType(Cell.Room.SPANNER);
+    return squares;
+  }
+  //Handled in GUI
+//  public void printBoard(){
+//    Cell[][] squares = board.getCells();
+//    StringBuilder sb = new StringBuilder();
+//    for (int i = 0; i < 30; i++){
+//      if (i == 13){
+//        sb.append("Dining ");
+//      }
+//      else if (i == 14){
+//        sb.append("Room   ");
+//      }
+//      else {
+//        sb.append("       ");
+//      }
+//      for (int j = 0; j < 30; j++){
+//         sb.append(squares[i][j]);
+//      }
+//      if (i == 11){
+//        sb.append(" Billiard");
+//      }
+//      else if (i == 12){
+//        sb.append( " Room");
+//      }
+//      else if (i == 20){
+//        sb.append(" Library");
+//      }
+//      if (i != 29) {
+//        sb.append("\n");
+//      }
+//    }
+//    System.out.println("         Kitchen               Ball Room           Conservatory");
+//    System.out.println(sb);
+//    System.out.println("         Lounge                Hall                Study");
+//  }
+
   public static void main(String[] args){
-    Game game = new Game();
-    game.printBoard();
+    Game game = new Game(3);
+    //game.printBoard();
   }
 
   //------------------------
@@ -253,349 +359,8 @@ public class Game
   {
     return gameWon;
   }
-  /* Code from template association_GetMany */
-  public Board getBoard(int index)
-  {
-    Board aBoard = boards.get(index);
-    return aBoard;
-  }
 
-  public List<Board> getBoards()
-  {
-    List<Board> newBoards = Collections.unmodifiableList(boards);
-    return newBoards;
-  }
-
-  public int numberOfBoards()
-  {
-    int number = boards.size();
-    return number;
-  }
-
-  public boolean hasBoards()
-  {
-    boolean has = boards.size() > 0;
-    return has;
-  }
-
-  public int indexOfBoard(Board aBoard)
-  {
-    int index = boards.indexOf(aBoard);
-    return index;
-  }
-  /* Code from template association_GetMany */
-  public Tuple getTuple(int index)
-  {
-    Tuple aTuple = tuples.get(index);
-    return aTuple;
-  }
-
-  public List<Tuple> getTuples()
-  {
-    List<Tuple> newTuples = Collections.unmodifiableList(tuples);
-    return newTuples;
-  }
-
-  public int numberOfTuples()
-  {
-    int number = tuples.size();
-    return number;
-  }
-
-  public boolean hasTuples()
-  {
-    boolean has = tuples.size() > 0;
-    return has;
-  }
-
-  public int indexOfTuple(Tuple aTuple)
-  {
-    int index = tuples.indexOf(aTuple);
-    return index;
-  }
-  /* Code from template association_GetMany */
-  public Card getCard(int index)
-  {
-    Card aCard = cards.get(index);
-    return aCard;
-  }
-
-  public List<Card> getCards()
-  {
-    List<Card> newCards = Collections.unmodifiableList(cards);
-    return newCards;
-  }
-
-  public int numberOfCards()
-  {
-    int number = cards.size();
-    return number;
-  }
-
-  public boolean hasCards()
-  {
-    boolean has = cards.size() > 0;
-    return has;
-  }
-
-  public int indexOfCard(Card aCard)
-  {
-    int index = cards.indexOf(aCard);
-    return index;
-  }
-  /* Code from template association_MinimumNumberOfMethod */
-  public static int minimumNumberOfBoards()
-  {
-    return 0;
-  }
-
-
-  public boolean addBoard(Board aBoard)
-  {
-    boolean wasAdded = false;
-    if (boards.contains(aBoard)) { return false; }
-    Game existingGame = aBoard.getGame();
-    boolean isNewGame = existingGame != null && !this.equals(existingGame);
-    if (isNewGame)
-    {
-      aBoard.setGame(this);
-    }
-    else
-    {
-      boards.add(aBoard);
-    }
-    wasAdded = true;
-    return wasAdded;
-  }
-
-  public boolean removeBoard(Board aBoard)
-  {
-    boolean wasRemoved = false;
-    //Unable to remove aBoard, as it must always have a game
-    if (!this.equals(aBoard.getGame()))
-    {
-      boards.remove(aBoard);
-      wasRemoved = true;
-    }
-    return wasRemoved;
-  }
-  /* Code from template association_AddIndexControlFunctions */
-  public boolean addBoardAt(Board aBoard, int index)
-  {  
-    boolean wasAdded = false;
-    if(addBoard(aBoard))
-    {
-      if(index < 0 ) { index = 0; }
-      if(index > numberOfBoards()) { index = numberOfBoards() - 1; }
-      boards.remove(aBoard);
-      boards.add(index, aBoard);
-      wasAdded = true;
-    }
-    return wasAdded;
-  }
-
-  public boolean addOrMoveBoardAt(Board aBoard, int index)
-  {
-    boolean wasAdded = false;
-    if(boards.contains(aBoard))
-    {
-      if(index < 0 ) { index = 0; }
-      if(index > numberOfBoards()) { index = numberOfBoards() - 1; }
-      boards.remove(aBoard);
-      boards.add(index, aBoard);
-      wasAdded = true;
-    } 
-    else 
-    {
-      wasAdded = addBoardAt(aBoard, index);
-    }
-    return wasAdded;
-  }
-  /* Code from template association_MinimumNumberOfMethod */
-  public static int minimumNumberOfTuples()
-  {
-    return 0;
-  }
-  /* Code from template association_AddManyToManyMethod */
-  public boolean addTuple(Tuple aTuple)
-  {
-    boolean wasAdded = false;
-    if (tuples.contains(aTuple)) { return false; }
-    tuples.add(aTuple);
-    if (aTuple.indexOfGame(this) != -1)
-    {
-      wasAdded = true;
-    }
-    else
-    {
-      wasAdded = aTuple.addGame(this);
-      if (!wasAdded)
-      {
-        tuples.remove(aTuple);
-      }
-    }
-    return wasAdded;
-  }
-  /* Code from template association_RemoveMany */
-  public boolean removeTuple(Tuple aTuple)
-  {
-    boolean wasRemoved = false;
-    if (!tuples.contains(aTuple))
-    {
-      return wasRemoved;
-    }
-
-    int oldIndex = tuples.indexOf(aTuple);
-    tuples.remove(oldIndex);
-    if (aTuple.indexOfGame(this) == -1)
-    {
-      wasRemoved = true;
-    }
-    else
-    {
-      wasRemoved = aTuple.removeGame(this);
-      if (!wasRemoved)
-      {
-        tuples.add(oldIndex,aTuple);
-      }
-    }
-    return wasRemoved;
-  }
-  /* Code from template association_AddIndexControlFunctions */
-  public boolean addTupleAt(Tuple aTuple, int index)
-  {  
-    boolean wasAdded = false;
-    if(addTuple(aTuple))
-    {
-      if(index < 0 ) { index = 0; }
-      if(index > numberOfTuples()) { index = numberOfTuples() - 1; }
-      tuples.remove(aTuple);
-      tuples.add(index, aTuple);
-      wasAdded = true;
-    }
-    return wasAdded;
-  }
-
-  public boolean addOrMoveTupleAt(Tuple aTuple, int index)
-  {
-    boolean wasAdded = false;
-    if(tuples.contains(aTuple))
-    {
-      if(index < 0 ) { index = 0; }
-      if(index > numberOfTuples()) { index = numberOfTuples() - 1; }
-      tuples.remove(aTuple);
-      tuples.add(index, aTuple);
-      wasAdded = true;
-    } 
-    else 
-    {
-      wasAdded = addTupleAt(aTuple, index);
-    }
-    return wasAdded;
-  }
-  /* Code from template association_IsNumberOfValidMethod */
-  public boolean isNumberOfCardsValid()
-  {
-    boolean isValid = numberOfCards() >= minimumNumberOfCards() && numberOfCards() <= maximumNumberOfCards();
-    return isValid;
-  }
-  /* Code from template association_RequiredNumberOfMethod */
-  public static int requiredNumberOfCards()
-  {
-    return 21;
-  }
-  /* Code from template association_MinimumNumberOfMethod */
-  public static int minimumNumberOfCards()
-  {
-    return 21;
-  }
-  /* Code from template association_MaximumNumberOfMethod */
-  public static int maximumNumberOfCards()
-  {
-    return 21;
-  }
-  /* Code from template association_AddMNToOnlyOne */
-  public Card addCard()
-  {
-    if (numberOfCards() >= maximumNumberOfCards())
-    {
-      return null;
-    }
-    else
-    {
-      return new Card(this);
-    }
-  }
-
-  public boolean addCard(Card aCard)
-  {
-    boolean wasAdded = false;
-    if (cards.contains(aCard)) { return false; }
-    if (numberOfCards() >= maximumNumberOfCards())
-    {
-      return wasAdded;
-    }
-
-    Game existingGame = aCard.getGame();
-    boolean isNewGame = existingGame != null && !this.equals(existingGame);
-
-    if (isNewGame && existingGame.numberOfCards() <= minimumNumberOfCards())
-    {
-      return wasAdded;
-    }
-
-    if (isNewGame)
-    {
-      aCard.setGame(this);
-    }
-    else
-    {
-      cards.add(aCard);
-    }
-    wasAdded = true;
-    return wasAdded;
-  }
-
-  public boolean removeCard(Card aCard)
-  {
-    boolean wasRemoved = false;
-    //Unable to remove aCard, as it must always have a game
-    if (this.equals(aCard.getGame()))
-    {
-      return wasRemoved;
-    }
-
-    //game already at minimum (21)
-    if (numberOfCards() <= minimumNumberOfCards())
-    {
-      return wasRemoved;
-    }
-    cards.remove(aCard);
-    wasRemoved = true;
-    return wasRemoved;
-  }
-
-  public void delete()
-  {
-    for(int i=boards.size(); i > 0; i--)
-    {
-      Board aBoard = boards.get(i - 1);
-      aBoard.delete();
-    }
-    ArrayList<Tuple> copyOfTuples = new ArrayList<Tuple>(tuples);
-    tuples.clear();
-    for(Tuple aTuple : copyOfTuples)
-    {
-      aTuple.removeGame(this);
-    }
-    for(int i=cards.size(); i > 0; i--)
-    {
-      Card aCard = cards.get(i - 1);
-      aCard.delete();
-    }
-  }
-
-
+  
   public String toString()
   {
     return super.toString() + "["+
