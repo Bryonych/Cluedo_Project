@@ -19,38 +19,26 @@ public class RoomCard extends Card
   // CONSTRUCTOR
   //------------------------
 
-  public RoomCard(Game aGame, String aName)
+  public RoomCard(String name)
   {
-    super(aGame);
-    name = aName;
+    super(name);
+    this.name = name;
   }
 
   //------------------------
   // INTERFACE
   //------------------------
 
-  public boolean setName(String aName)
-  {
-    boolean wasSet = false;
-    name = aName;
-    wasSet = true;
-    return wasSet;
-  }
-
   public String getName()
   {
     return name;
   }
 
-  public void delete()
-  {
-    super.delete();
-  }
-
 
   public String toString()
   {
-    return super.toString() + "["+
-            "name" + ":" + getName()+ "]";
+    return " ------------------- \n" +
+            " Card: " + name + "\n" +
+            " ------------------- ";
   }
 }
