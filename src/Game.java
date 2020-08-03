@@ -324,13 +324,12 @@ public class Game
         moveTo.changeType(moving.getType());
     }
     /**
-     * Moves weapon from one room to another
+     * Moves Chracter
      * @param moving
      * @param destination
      */
     public void moveCharacter(Character moving, Room destination){
         Cell current = moving.getLocation();
-        //Need to finish this.
     }
 
     //Handled in GUI
