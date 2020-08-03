@@ -13,19 +13,48 @@ public class Cell
   //------------------------
 
   //Cell Attributes
-  private boolean isWall;
-  private boolean isEmpty;
+
+  private boolean isEmpty = true;
   private int xPos;
   private int yPos;
+
+  public enum Type {
+    WALL,
+    START,
+    KITCHEN,
+    BALLROOM,
+    CONSERVATORY,
+    DINING,
+    BILLIARD,
+    LIBRARY,
+    LOUNGE,
+    HALL,
+    STUDY,
+    HALLWAY,
+    DOOR,
+    WHITE,
+    GREEN,
+    PEACOCK,
+    PLUM,
+    SCARLETT,
+    MUSTARD,
+    CANDLESTICK,
+    DAGGER,
+    LEADPIPE,
+    REVOLVER,
+    ROPE,
+    SPANNER;
+  }
+
+  private Type type;
 
   //------------------------
   // CONSTRUCTOR
   //------------------------
 
-  public Cell(boolean aIsWall, boolean aIsEmpty, int aXPos, int aYPos)
+  public Cell(Type type, int aXPos, int aYPos)
   {
-    isWall = aIsWall;
-    isEmpty = aIsEmpty;
+    this.type = type;
     xPos = aXPos;
     yPos = aYPos;
   }
@@ -34,42 +63,10 @@ public class Cell
   // INTERFACE
   //------------------------
 
-  public boolean setIsWall(boolean aIsWall)
-  {
-    boolean wasSet = false;
-    isWall = aIsWall;
-    wasSet = true;
-    return wasSet;
+  public void changeType(Type type){
+    this.type = type;
   }
 
-  public boolean setIsEmpty(boolean aIsEmpty)
-  {
-    boolean wasSet = false;
-    isEmpty = aIsEmpty;
-    wasSet = true;
-    return wasSet;
-  }
-
-  public boolean setXPos(int aXPos)
-  {
-    boolean wasSet = false;
-    xPos = aXPos;
-    wasSet = true;
-    return wasSet;
-  }
-
-  public boolean setYPos(int aYPos)
-  {
-    boolean wasSet = false;
-    yPos = aYPos;
-    wasSet = true;
-    return wasSet;
-  }
-
-  public boolean getIsWall()
-  {
-    return isWall;
-  }
 
   public boolean getIsEmpty()
   {
@@ -86,16 +83,55 @@ public class Cell
     return yPos;
   }
 
-  public void delete()
-  {}
 
 
   public String toString()
   {
-    return super.toString() + "["+
-            "isWall" + ":" + getIsWall()+ "," +
-            "isEmpty" + ":" + getIsEmpty()+ "," +
-            "xPos" + ":" + getXPos()+ "," +
-            "yPos" + ":" + getYPos()+ "]";
+    if (type.equals(Type.WALL)){
+      return "XX";
+    }
+    else if (type.equals(Type.START)){
+      return "()";
+    }
+    else if (type.equals(Type.DOOR)){
+      return "  ";
+    }
+    else if (type.equals(Type.WHITE)){
+      return "W|";
+    }
+    else if (type.equals(Type.GREEN)){
+      return "G|";
+    }
+    else if (type.equals(Type.PEACOCK)){
+      return "K|";
+    }
+    else if (type.equals(Type.PLUM)){
+      return "P|";
+    }
+    else if (type.equals(Type.SCARLETT)){
+      return "S|";
+    }
+    else if (type.equals(Type.MUSTARD)){
+      return "M|";
+    }
+    else if (type.equals(Type.CANDLESTICK)){
+      return "I|";
+    }
+    else if (type.equals(Type.DAGGER)){
+      return "1|";
+    }
+    else if (type.equals(Type.LEADPIPE)){
+      return "7|";
+    }
+    else if (type.equals(Type.REVOLVER)){
+      return "L|";
+    }
+    else if (type.equals(Type.ROPE)){
+      return "8|";
+    }
+    else if (type.equals(Type.SPANNER)){
+      return "F|";
+    }
+    else return "_|";
   }
 }
