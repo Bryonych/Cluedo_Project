@@ -40,6 +40,6 @@ public class CharacterCard extends Card
   {
     return " ------------------- \n" +
             " Card: " + name + "\n" +
-            " ------------------- ";
+            " -------------------\n";
   }
 }
