@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.*;
 
 // line 2 "model.ump"
@@ -10,10 +11,10 @@ public class Game
     //------------------------
 
     //Game Attributes
-    private Board board;
+    private static Board board;
     private int dice;
-    private List<Character> players = new ArrayList<Character>();
-    private List<Character> characters = new ArrayList<Character>();
+    private static List<Character> players = new ArrayList<Character>();
+    private static List<Character> characters = new ArrayList<Character>();
     private List<Card> allCards = new ArrayList<Card>();
     private List<CharacterCard> charCards = new ArrayList<CharacterCard>();
     private List<RoomCard> roomCards = new ArrayList<RoomCard>();
@@ -26,7 +27,7 @@ public class Game
     private Card refute;
     private Tuple accusation;
     private boolean gameWon;
-    private int numPlayers;
+    private static int numPlayers;
 
     //Game Associations
     private List<Board> boards;
@@ -36,20 +37,21 @@ public class Game
     // CONSTRUCTOR
     //------------------------
     public Game(int numPlayers){
-        this.board = createBoard();
+        board = createBoard();
         this.numPlayers = numPlayers;
         createRooms();
         createWeapons();
         setPlayers();
         createCards();
         murderDetails = setMurderDetails();
+        dealCards();
     }
 
     /**
      * Creates the cells that make up the initial board
      * @return
      */
-    public Board createBoard(){
+    public static Board createBoard(){
         int x = 30;
         int y = 30;
         Cell[][] squares = new Cell[x][y];
@@ -117,7 +119,7 @@ public class Game
      * @param squares
      * @return
      */
-    public Cell[][] setDoorsAndStart(Cell[][] squares){
+    public static Cell[][] setDoorsAndStart(Cell[][] squares){
 
         squares[0][10].changeType(Cell.Type.WHITE);
         squares[0][19].changeType(Cell.Type.GREEN);
@@ -144,30 +146,16 @@ public class Game
         return squares;
 
     }
-    //Handled in GUI
-//  public int getNumPlayers(){
-//
-//    Scanner sc = new Scanner(System.in);
-//    System.out.println("How many players?");
-//    int answer = 0;
-//    try {
-//      answer = sc.nextInt();
-//    } catch(InputMismatchException e) { System.out.println("Invalid number"); }
-//    if (answer < 2){
-//      System.out.println("Number of players needs to be 2-6");
-//      getNumPlayers();
-//    }
-//    return answer;
-//  }
 
     /**
      * Creates the Characters and players
      */
-    public void setPlayers(){
-        Character white = new Character("Mrs White", board.getCells()[0][10]);
+    public static void setPlayers(){
+        int count = 1;
+        Character white = new Character("Mrs White",  board.getCells()[0][10]);
         Character green = new Character("Mr Green", board.getCells()[0][19]);
         Character peacock = new Character("Mrs Peacock", board.getCells()[7][29]);
-        Character plum = new Character("Prof Plum", board.getCells()[24][29]);
+        Character plum = new Character("Prof Plum",board.getCells()[24][29]);
         Character scarlett = new Character("Miss Scarlet", board.getCells()[29][9]);
         Character mustard = new Character("Col Mustard", board.getCells()[20][0]);
         characters.add(white);
@@ -176,10 +164,30 @@ public class Game
         characters.add(plum);
         characters.add(scarlett);
         characters.add(mustard);
-        for (int i = 0; i < numPlayers; i++){
-            players.add(characters.get(i));
+        Stack<Character> CharacterSelection = new Stack<Character>();
+        CharacterSelection.addAll(characters);
+        int counter = numPlayers;
+        while (counter != 0) {
+            ArrayList<Character> temp = new ArrayList<Character>();
+            temp.addAll(CharacterSelection);
+            System.out.println("Player "+ count+ " Please Select Your Character");
+            System.out.println("Please press Y for Yes, Any Other letter button to scroll next");
+            Scanner scan;
+            for(int i = 0; i < temp.size();) {
+                System.out.println(temp.get(i).getName());
+                scan = new Scanner(System.in);
+                String read = scan.nextLine();
+                if(read.contains("y")) {
+                    CharacterSelection.remove(temp.get(i));
+                    players.add(temp.get(i));
+                    counter--;
+                    count++;
+                    break;
+                } else {
+                    i++;
+                }
+            }
         }
-
     }
 
     /**
@@ -270,8 +278,24 @@ public class Game
         CharacterCard murderer = charCards.get(rand.nextInt(charCards.size()));
         RoomCard scene = roomCards.get(rand.nextInt(roomCards.size()));
         WeaponCard weapon = weaponCards.get(rand.nextInt(weaponCards.size()));
-        Tuple envelope = new Tuple(murderer, weapon, scene);
-        return envelope;
+        allCards.remove(murderer);
+        allCards.remove(scene);
+        allCards.remove(weapon);
+        return new Tuple(murderer, weapon, scene);
+    }
+
+    /**
+     * Suffles the remaining cards and deals them amongst the players
+     */
+    public void dealCards(){
+        Collections.shuffle(allCards);
+        for (int i = 0; i < numPlayers; i++){
+            List newHand = new ArrayList<Card>();
+            for (int j = i; j < allCards.size(); j+=numPlayers){
+                newHand.add(allCards.get(j));
+            }
+            players.get(i).setHand(new Hand(newHand, players.get(i)));
+        }
     }
 
     /**
@@ -279,7 +303,7 @@ public class Game
      * @param squares
      * @return
      */
-    public Cell[][] setWeapons(Cell[][] squares){
+    public static Cell[][] setWeapons(Cell[][] squares){
 
         squares[2][2].changeType(Cell.Type.CANDLESTICK);
         squares[2][14].changeType(Cell.Type.DAGGER);
@@ -301,6 +325,21 @@ public class Game
         Cell moveTo = destination.getWeaponSpot();
         moveFrom.changeType(current.getType());
         moveTo.changeType(moving.getType());
+        //redraw();
+    }
+    /**
+     * Moves Chracter
+     * @param moving
+     * @param destination
+     */
+    public void moveCharacter(Character moving, Cell destination){
+        Cell current = moving.getLocation();
+        Cell.Type oldRoom = moving.getCurrentRoom();
+        Cell.Type character = moving.getCharacterType();
+        moving.setCurrentRoom(destination.getType());
+        current.changeType(oldRoom);
+        destination.changeType(character);
+        //redraw();
     }
 
     //Handled in GUI
@@ -338,16 +377,48 @@ public class Game
 //    System.out.println("         Lounge                Hall                Study");
 //  }
 
-    public static void main(String[] args){
-        Game game = new Game(3);
-        //game.printBoard();
+    public static void main(String[] args) throws NumberFormatException, IOException{
+        Scanner scan = new Scanner(System.in);
+        System.out.println("How many players?");
+        numPlayers = scan.nextInt();
+        Game game = new Game(numPlayers);
+        Cell[][] cell = board.getCells();
+        int count = 0;
+        for(Character play : players) {
+            count++;
+            System.out.println("Player " + count + " " + play.getName() + " Your Turn");
+            //Cell Movemenet Here
+        }
+        //Just For Tempoaray Printing out.
+        for(int i = 0; i < 30; i++) {
+            for(int j = 0; j < 30; j++) {
+                System.out.print(cell[i][j]);
+            }
+            System.out.println("");
+        }
     }
+
 
     //------------------------
     // INTERFACE
     //------------------------
 
-
+    /**
+     *   public static void main(String []args) throws NumberFormatException, IOException{
+     Setup();
+     while(!gameWon) {
+     new Board(players,comp).toPrint();
+     for(Character a : players) {
+     System.out.println(a.getName() + " Turn");
+     //Maybe a Dice Class
+     Scanner scan = new Scanner(System.in);
+     scan = new Scanner(System.in);
+     String next = scan.nextLine();
+     }
+     }
+     }
+     * @return
+     */
 
     public Board getBoard()
     {
@@ -407,6 +478,11 @@ public class Game
                 "  " + "suggestion" + "=" + (getSuggestion() != null ? !getSuggestion().equals(this)  ? getSuggestion().toString().replaceAll("  ","    ") : "this" : "null") + System.getProperties().getProperty("line.separator") +
                 "  " + "refute" + "=" + (getRefute() != null ? !getRefute().equals(this)  ? getRefute().toString().replaceAll("  ","    ") : "this" : "null") + System.getProperties().getProperty("line.separator") +
                 "  " + "accusation" + "=" + (getAccusation() != null ? !getAccusation().equals(this)  ? getAccusation().toString().replaceAll("  ","    ") : "this" : "null");
+    }
+
+    public void removeTuple(Tuple tuple) {
+        // TODO Auto-generated method stub
+
     }
 }
 
