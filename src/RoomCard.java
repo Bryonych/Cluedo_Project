@@ -39,6 +39,6 @@ public class RoomCard extends Card
   {
     return " ------------------- \n" +
             " Card: " + name + "\n" +
-            " ------------------- ";
+            " -------------------\n";
   }
 }
