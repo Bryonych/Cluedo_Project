@@ -41,6 +41,6 @@ public class WeaponCard extends Card
   {
     return " ------------------- \n" +
             " Card: " + name + "\n" +
-            " ------------------- ";
+            " -------------------\n";
   }
 }
