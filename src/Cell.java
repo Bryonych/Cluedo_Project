@@ -131,7 +131,12 @@ public class Cell
     }
     else if (type.equals(Type.SPANNER)){
       return "F|";
-    }
-    else return "_|";
+    }    
+   else return "_|";
   }
+
+public Type getType() {
+	// TODO Auto-generated method stub
+	return type;
+}
 }

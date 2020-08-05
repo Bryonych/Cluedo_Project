@@ -1,3 +1,4 @@
+import java.awt.Point;
 import java.io.IOException;
 import java.util.*;
 
@@ -177,7 +178,7 @@ public class Game
                 System.out.println(temp.get(i).getName());
                 scan = new Scanner(System.in);
                 String read = scan.nextLine();
-                if(read.contains("y")) {
+                if(read.contains("Y")) {
                     CharacterSelection.remove(temp.get(i));
                     players.add(temp.get(i));
                     counter--;
@@ -332,10 +333,11 @@ public class Game
      * @param moving
      * @param destination
      */
-    public void moveCharacter(Character moving, Cell destination){
+    public static void moveCharacter(Character moving, Cell destination){
         Cell current = moving.getLocation();
         Cell.Type oldRoom = moving.getCurrentRoom();
         Cell.Type character = moving.getCharacterType();
+       System.out.println(moving.getCharacterType() + " " + oldRoom + " " + " " + destination.getType());
         moving.setCurrentRoom(destination.getType());
         current.changeType(oldRoom);
         destination.changeType(character);
@@ -376,49 +378,54 @@ public class Game
 //    System.out.println(sb);
 //    System.out.println("         Lounge                Hall                Study");
 //  }
+    
 
     public static void main(String[] args) throws NumberFormatException, IOException{
         Scanner scan = new Scanner(System.in);
         System.out.println("How many players?");
         numPlayers = scan.nextInt();
         Game game = new Game(numPlayers);
+        System.out.flush();
         Cell[][] cell = board.getCells();
         int count = 0;
+       // printBoard(cell); //Just printing the board
         for(Character play : players) {
             count++;
             System.out.println("Player " + count + " " + play.getName() + " Your Turn");
-            //Cell Movemenet Here
+           keyRead(1,play); //Just a temp move method
+           printBoard(cell); //Just printing the board temp
         }
-        //Just For Tempoaray Printing out.
+        
+        
+    }
+    public static void printBoard(Cell[][] cell) {
         for(int i = 0; i < 30; i++) {
+        	System.out.print(i + " \t");
             for(int j = 0; j < 30; j++) {
-                System.out.print(cell[i][j]);
+              //  System.out.print(cell[i][j].getType().toString() + " ");
+            	System.out.print(cell[i][j] +" ");
             }
             System.out.println("");
         }
     }
-
+    public static void keyRead(int n,Character play) {
+    	System.out.println(n);
+    	while(n != 0) {
+    	Scanner scan = new Scanner(System.in);
+    	String character = scan.nextLine();
+    	if(character.contains("w")) {
+    		System.out.println(play.getLocation().getXPos() + " " + (play.getLocation().getYPos()+1));
+    		 moveCharacter(play,new Cell(play.getCharacterType(),play.getLocation().getXPos(),play.getLocation().getYPos()+1));
+    		 n--;
+    		
+    	}
+    	}
+    	
+    }
 
     //------------------------
     // INTERFACE
     //------------------------
-
-    /**
-     *   public static void main(String []args) throws NumberFormatException, IOException{
-     Setup();
-     while(!gameWon) {
-     new Board(players,comp).toPrint();
-     for(Character a : players) {
-     System.out.println(a.getName() + " Turn");
-     //Maybe a Dice Class
-     Scanner scan = new Scanner(System.in);
-     scan = new Scanner(System.in);
-     String next = scan.nextLine();
-     }
-     }
-     }
-     * @return
-     */
 
     public Board getBoard()
     {
@@ -480,10 +487,21 @@ public class Game
                 "  " + "accusation" + "=" + (getAccusation() != null ? !getAccusation().equals(this)  ? getAccusation().toString().replaceAll("  ","    ") : "this" : "null");
     }
 
-    public void removeTuple(Tuple tuple) {
+    public boolean removeTuple(Tuple tuple) {
+		return gameWon;
         // TODO Auto-generated method stub
 
     }
+
+	public int indexOfTuple(Tuple tuple) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	public boolean addTuple(Tuple tuple) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }
 
 

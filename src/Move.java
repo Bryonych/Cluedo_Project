@@ -61,6 +61,7 @@ public class Move
 
   // line 101 "model.ump"
    public boolean isValidMove(){
+	return false;
     
   }
 

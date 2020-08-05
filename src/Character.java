@@ -30,6 +30,7 @@ public class Character
     name = aName;
     location = aLocation;
     this.currentRoom = Cell.Type.START;
+   // this.characterType = t;
 
   }
 
