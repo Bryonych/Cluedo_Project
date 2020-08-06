@@ -12,6 +12,7 @@ public class Room
     //Room Attributes
     private String name;
     private Cell weaponSpot;
+    private Cell characterSpot;
     private Weapon currentWeapon;
     private Cell.Type roomType;
 
@@ -20,17 +21,22 @@ public class Room
     // CONSTRUCTOR
     //------------------------
 
-    public Room(String aName, Cell weapon, Cell.Type roomType)
+    public Room(String aName, Cell weapon, Cell.Type roomType, Cell characterSpot)
     {
         name = aName;
         weaponSpot = weapon;
         this.roomType = roomType;
+        this.characterSpot = characterSpot;
 
     }
 
     //------------------------
     // INTERFACE
     //------------------------
+
+   public Cell getCharacterSpot(){
+        return characterSpot;
+   }
 
    public Cell.Type getType(){
         return roomType;
@@ -44,13 +50,21 @@ public class Room
         this.currentWeapon = newWeapon;
    }
 
-    public String getName()
+   public String getName()
     {
         return name;
     }
 
+    @Override
+    public boolean equals(Object obj){
+        if (this == obj)  return true;
+        if (obj == null)  return false;
+        if (obj.getClass() != this.getClass())  return false;
+        Room other = (Room)obj;
+        return this.name.equals(other.name);
+    }
 
-
+    @Override
     public String toString()
     {
         return super.toString() + "["+
