@@ -55,22 +55,6 @@ public class Character
   }
 
 
-  public boolean setHand(Hand aHand)
-  {
-    boolean wasSet = false;
-    hand = aHand;
-    wasSet = true;
-    return wasSet;
-  }
-
-  public boolean setLocation(Cell aLocation)
-  {
-    boolean wasSet = false;
-    location = aLocation;
-    wasSet = true;
-    return wasSet;
-  }
-
   public String getName()
   {
     return name;
@@ -80,6 +64,16 @@ public class Character
   {
     return hand;
   }
+
+  @Override
+  public boolean equals(Object obj){
+    if (this == obj)  return true;
+    if (obj == null)  return false;
+    if (obj.getClass() != this.getClass())  return false;
+    Character other = (Character)obj;
+    return this.name.equals(other.name);
+  }
+
 
 
 }
