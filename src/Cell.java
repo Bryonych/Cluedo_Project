@@ -67,6 +67,10 @@ public class Cell
     this.type = type;
   }
 
+  public Type getType() {
+    return type;
+  }
+
 
   public boolean getIsEmpty()
   {
@@ -84,7 +88,16 @@ public class Cell
   }
 
 
+  @Override
+  public boolean equals(Object obj){
+    if (this == obj)  return true;
+    if (obj == null)  return false;
+    if (obj.getClass() != this.getClass())  return false;
+    Cell other = (Cell)obj;
+    return this.xPos == other.xPos && this.yPos == other.yPos;
+  }
 
+  @Override
   public String toString()
   {
     if (type.equals(Type.WALL)){
@@ -131,12 +144,7 @@ public class Cell
     }
     else if (type.equals(Type.SPANNER)){
       return "F|";
-    }    
-   else return "_|";
+    }
+    else return "_|";
   }
-
-public Type getType() {
-	// TODO Auto-generated method stub
-	return type;
-}
 }
