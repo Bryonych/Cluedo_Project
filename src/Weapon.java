@@ -35,22 +35,6 @@ public class Weapon
         return weaponType;
     }
 
-    public boolean setName(String aName)
-    {
-        boolean wasSet = false;
-        name = aName;
-        wasSet = true;
-        return wasSet;
-    }
-
-    public boolean setLocation(Room aLocation)
-    {
-        boolean wasSet = false;
-        location = aLocation;
-        wasSet = true;
-        return wasSet;
-    }
-
     public String getName()
     {
         return name;
@@ -60,14 +44,16 @@ public class Weapon
     {
         return location;
     }
-    /* Code from template association_GetMany */
 
-    public String toString()
-    {
-        return super.toString() + "["+
-                "name" + ":" + getName()+ "]" + System.getProperties().getProperty("line.separator") +
-                "  " + "location" + "=" + (getLocation() != null ? !getLocation().equals(this)  ? getLocation().toString().replaceAll("  ","    ") : "this" : "null");
+    @Override
+    public boolean equals(Object obj){
+        if (this == obj)  return true;
+        if (obj == null)  return false;
+        if (obj.getClass() != this.getClass())  return false;
+        Weapon other = (Weapon)obj;
+        return this.name.equals(other.name);
     }
+
 }
 
 
