@@ -17,19 +17,24 @@ public class Game
     private static List<Character> players = new ArrayList<Character>();
     private static List<Character> characters = new ArrayList<Character>();
     private List<Card> allCards = new ArrayList<Card>();
-    private List<CharacterCard> charCards = new ArrayList<CharacterCard>();
-    private List<RoomCard> roomCards = new ArrayList<RoomCard>();
-    private List<WeaponCard> weaponCards = new ArrayList<WeaponCard>();
-    private List<Room> rooms = new ArrayList<Room>();
-    private List<Weapon> weapons = new ArrayList<Weapon>();
+    private static List<CharacterCard> charCards = new ArrayList<CharacterCard>();
+    private static List<RoomCard> roomCards = new ArrayList<RoomCard>();
+    private static List<WeaponCard> weaponCards = new ArrayList<WeaponCard>();
+    private static List<Room> rooms = new ArrayList<Room>();
+    private static List<Weapon> weapons = new ArrayList<Weapon>();
     private Tuple murderDetails;
-    private CharacterCard murderer;
-    private RoomCard scene;
-    private WeaponCard weapon;
     private Character currentTurn;
+    private static Tuple suggestion;
+    private Card refute;
+    private Tuple accusation;
     private boolean gameWon;
     private static int numPlayers;
+    private static boolean suggestionMade = false;
+    
 
+    //Game Associations
+    private List<Board> boards;
+    private List<Tuple> tuples;
 
     //------------------------
     // CONSTRUCTOR
@@ -150,12 +155,12 @@ public class Game
      */
     public static void setPlayers(){
         int count = 1;
-        Character white = new Character("Mrs White",  board.getCells()[0][10], Cell.Type.WHITE);
-        Character green = new Character("Mr Green", board.getCells()[0][19], Cell.Type.GREEN);
-        Character peacock = new Character("Mrs Peacock", board.getCells()[7][29], Cell.Type.PEACOCK);
-        Character plum = new Character("Prof Plum",board.getCells()[24][29], Cell.Type.PLUM);
-        Character scarlett = new Character("Miss Scarlet", board.getCells()[29][9], Cell.Type.SCARLETT);
-        Character mustard = new Character("Col Mustard", board.getCells()[20][0], Cell.Type.MUSTARD);
+        Character white = new Character("Mrs White",  board.getCells()[0][10]);
+        Character green = new Character("Mr Green", board.getCells()[0][19]);
+        Character peacock = new Character("Mrs Peacock", board.getCells()[7][29]);
+        Character plum = new Character("Prof Plum",board.getCells()[24][29]);
+        Character scarlett = new Character("Miss Scarlet", board.getCells()[29][9]);
+        Character mustard = new Character("Col Mustard", board.getCells()[20][0]);
         characters.add(white);
         characters.add(green);
         characters.add(peacock);
@@ -174,7 +179,7 @@ public class Game
             for(int i = 0; i < temp.size();) {
                 System.out.println(temp.get(i).getName());
                 scan = new Scanner(System.in);
-                String read = scan.nextLine().toUpperCase();
+                String read = scan.nextLine();
                 if(read.contains("Y")) {
                     CharacterSelection.remove(temp.get(i));
                     players.add(temp.get(i));
@@ -192,15 +197,15 @@ public class Game
      * Creates all the rooms and sets the cell where the weapon sits in the room
      */
     public void createRooms(){
-        rooms.add(new Room("Kitchen", board.getCells()[2][2], Cell.Type.KITCHEN, board.getCells()[2][3]));
-        rooms.add(new Room("Ball Room", board.getCells()[2][14], Cell.Type.BALLROOM, board.getCells()[2][15]));
-        rooms.add(new Room("Conservatory", board.getCells()[2][27], Cell.Type.CONSERVATORY, board.getCells()[2][26]));
-        rooms.add(new Room("Dining Room", board.getCells()[13][2], Cell.Type.DINING, board.getCells()[13][3]));
-        rooms.add(new Room("Billiard Room", board.getCells()[13][27], Cell.Type.BILLIARD, board.getCells()[13][26]));
-        rooms.add(new Room("Library", board.getCells()[20][27], Cell.Type.LIBRARY, board.getCells()[20][26]));
-        rooms.add(new Room("Lounge", board.getCells()[27][2], Cell.Type.LOUNGE, board.getCells()[27][3]));
-        rooms.add(new Room("Hall", board.getCells()[27][14], Cell.Type.HALL, board.getCells()[27][15]));
-        rooms.add(new Room("Study", board.getCells()[27][27], Cell.Type.STUDY, board.getCells()[27][26]));
+        rooms.add(new Room("Kitchen", board.getCells()[2][2], Cell.Type.KITCHEN));
+        rooms.add(new Room("Ball Room", board.getCells()[2][14], Cell.Type.BALLROOM));
+        rooms.add(new Room("Conservatory", board.getCells()[2][27], Cell.Type.CONSERVATORY));
+        rooms.add(new Room("Dining Room", board.getCells()[13][2], Cell.Type.DINING));
+        rooms.add(new Room("Billiard Room", board.getCells()[13][27], Cell.Type.BILLIARD));
+        rooms.add(new Room("Library", board.getCells()[20][27], Cell.Type.LIBRARY));
+        rooms.add(new Room("Lounge", board.getCells()[27][2], Cell.Type.LOUNGE));
+        rooms.add(new Room("Hall", board.getCells()[27][14], Cell.Type.HALL));
+        rooms.add(new Room("Study", board.getCells()[27][27], Cell.Type.STUDY));
     }
 
     public void createWeapons(){
@@ -273,9 +278,9 @@ public class Game
      */
     public Tuple setMurderDetails(){
         Random rand = new Random();
-        murderer = charCards.get(rand.nextInt(charCards.size()));
-        scene = roomCards.get(rand.nextInt(roomCards.size()));
-        weapon = weaponCards.get(rand.nextInt(weaponCards.size()));
+        CharacterCard murderer = charCards.get(rand.nextInt(charCards.size()));
+        RoomCard scene = roomCards.get(rand.nextInt(roomCards.size()));
+        WeaponCard weapon = weaponCards.get(rand.nextInt(weaponCards.size()));
         allCards.remove(murderer);
         allCards.remove(scene);
         allCards.remove(weapon);
@@ -293,62 +298,6 @@ public class Game
                 newHand.add(allCards.get(j));
             }
             players.get(i).setHand(new Hand(newHand, players.get(i)));
-        }
-        allCards.add(murderer);
-        allCards.add(scene);
-        allCards.add(weapon);
-    }
-
-    /**
-     * Randomly selects a number between 2 and 12 for the dice roll
-     * @return
-     */
-    public int rollDice(){
-        dice = 2 + (int)(Math.random()*11);
-        return dice;
-    }
-
-    /**
-     * Checks a murder suggestion from a player and shows one card from each of the other players hands or displays if
-     * there are no cards to show
-     * @param murderAccused
-     * @param roomAccused
-     * @param weaponAccused
-     * @param accuser
-     */
-    public void checkSuggestion(CharacterCard murderAccused, RoomCard roomAccused, WeaponCard weaponAccused, Character accuser){
-        for (Character c : players){
-            boolean cardShown = false;
-            if (!c.equals(accuser)){
-                for (Card card : c.getHand().getCards()){
-                    if (card.equals(murderAccused) || card.equals(roomAccused) || card.equals(weaponAccused)){
-                        System.out.println(c.getName() + " shows card: " + c.getName());
-                        cardShown = true;;
-                        break;
-                    }
-                }
-            }
-            if (!cardShown){
-                System.out.println(c.getName() + " has no cards to show");
-            }
-        }
-    }
-
-    /**
-     * Checks the accusation made against the murder details. If correct, the player has won. If not, they are excluded
-     * @param murderAccused     Character being accused
-     * @param roomAccused       Room accusation
-     * @param weaponAccused     Weapon accusation
-     * @param accuser           Player making the accusation
-     */
-    public void checkAccusation(CharacterCard murderAccused, RoomCard roomAccused, WeaponCard weaponAccused, Character accuser){
-        if (murderDetails.getMurderer().equals(murderAccused) && murderDetails.getCrimeScene().equals(roomAccused) && murderDetails.getWeapon().equals(weaponAccused)){
-            System.out.println("Correct! You have won the game!");
-            gameWon = true;
-        }
-        else {
-            System.out.println("Incorrect Accusation - you may make no further suggestions");
-            players.remove(accuser);
         }
     }
 
@@ -379,7 +328,7 @@ public class Game
         Cell moveTo = destination.getWeaponSpot();
         moveFrom.changeType(current.getType());
         moveTo.changeType(moving.getType());
-        printBoard(board.getCells());
+        //redraw();
     }
     /**
      * Moves Chracter
@@ -390,28 +339,48 @@ public class Game
         Cell current = moving.getLocation();
         Cell.Type oldRoom = moving.getCurrentRoom();
         Cell.Type character = moving.getCharacterType();
-        //System.out.println(moving.getCharacterType() + " " + oldRoom + " " + " " + destination.getType());
+       System.out.println(moving.getCharacterType() + " " + oldRoom + " " + " " + destination.getType());
         moving.setCurrentRoom(destination.getType());
         current.changeType(oldRoom);
         destination.changeType(character);
-        printBoard(board.getCells());
+        //redraw();
     }
 
-    /**
-     * Moves a character to a room when a suggestion they are the murderer is made
-     * @param moving
-     * @param newRoom
-     */
-    public static void moveCharacterToRoom(Character moving, Room newRoom){
-        Cell current = moving.getLocation();
-        Cell.Type oldRoom = moving.getCurrentRoom();
-        Cell.Type character = moving.getCharacterType();
-        moving.setCurrentRoom(newRoom.getType());
-        current.changeType(oldRoom);
-        newRoom.getCharacterSpot().changeType(character);
-        printBoard(board.getCells());
-    }
-
+    //Handled in GUI
+//  public void printBoard(){
+//    Cell[][] squares = board.getCells();
+//    StringBuilder sb = new StringBuilder();
+//    for (int i = 0; i < 30; i++){
+//      if (i == 13){
+//        sb.append("Dining ");
+//      }
+//      else if (i == 14){
+//        sb.append("Room   ");
+//      }
+//      else {
+//        sb.append("       ");
+//      }
+//      for (int j = 0; j < 30; j++){
+//         sb.append(squares[i][j]);
+//      }
+//      if (i == 11){
+//        sb.append(" Billiard");
+//      }
+//      else if (i == 12){
+//        sb.append( " Room");
+//      }
+//      else if (i == 20){
+//        sb.append(" Library");
+//      }
+//      if (i != 29) {
+//        sb.append("\n");
+//      }
+//    }
+//    System.out.println("         Kitchen               Ball Room           Conservatory");
+//    System.out.println(sb);
+//    System.out.println("         Lounge                Hall                Study");
+//  }
+    
 
     public static void main(String[] args) throws NumberFormatException, IOException{
         Scanner scan = new Scanner(System.in);
@@ -420,69 +389,66 @@ public class Game
         Game game = new Game(numPlayers);
         System.out.flush();
         Cell[][] cell = board.getCells();
-        printBoard(cell);
         int count = 0;
-        // printBoard(cell); //Just printing the board
+       // printBoard(cell); //Just printing the board
         for(Character play : players) {
             count++;
             System.out.println("Player " + count + " " + play.getName() + " Your Turn");
-            System.out.print(play.getHand());
-            keyRead(1,play); //Just a temp move method
-
+            //check if a suggestion has been made
+            if(suggestionMade) {
+            	System.out.println(suggestion.toString());
+            	for(Card c : ((Suggestion) suggestion).getCards()) {
+            		if(play.getHand().getCards().contains(c)) {
+            			System.out.println("Would you like to refute with:\n" + c.toString());
+            			Scanner refuteCheck = new Scanner(System.in);
+            			System.out.println("y for yes, n for no.");
+            			String response = refuteCheck.nextLine();
+            			if(response.equalsIgnoreCase("y")) {
+            				System.out.println("Suggestion refuted!");
+            				suggestion = null;
+            				suggestionMade = false;
+            				break;
+            			}
+            		}
+            	}
+            }
+           keyRead(1,play); //Just a temp move method
+           printBoard(cell); //Just printing the board temp
         }
-        printBoard(cell); //Just printing the board temp
-
+        
+        
     }
-
     public static void printBoard(Cell[][] cell) {
-        System.out.println("               Kitchen                          Ball Room                      Conservatory");
         for(int i = 0; i < 30; i++) {
-            if (i == 13){
-                System.out.print("Dining ");
-            }
-            else if (i == 14){
-                System.out.print("Room   ");
-            }
-            else {
-                System.out.print("       ");
-            }
-            System.out.print(i + " \t");
+        	System.out.print(i + " \t");
             for(int j = 0; j < 30; j++) {
-                //  System.out.print(cell[i][j].getType().toString() + " ");
-                System.out.print(cell[i][j] +" ");
-            }
-            if (i == 11){
-                System.out.print(" Billiard");
-            }
-            else if (i == 12){
-               System.out.print( " Room");
-            }
-            else if (i == 20){
-                System.out.print(" Library");
+              //  System.out.print(cell[i][j].getType().toString() + " ");
+            	System.out.print(cell[i][j] +" ");
             }
             System.out.println("");
         }
-        System.out.println("               Lounge                           Hall                           Study\n");
     }
     public static void keyRead(int n,Character play) {
-        System.out.println(n);
-        while(n != 0) {
-            //Scanner scan = new Scanner(System.in);
-            //String character = scan.nextLine();
-            //if(character.contains("w")) {
-                System.out.println(play.getLocation().getXPos() + " " + (play.getLocation().getYPos()+1));
-
-                //moveCharacter(play,new Cell(play.getCharacterType(),play.getLocation().getXPos(),play.getLocation().getYPos()+1));
-                Cell currentLoc = play.getLocation();
-                Point loc = new Point(currentLoc.getXPos(), currentLoc.getYPos());
-                moveCharacter(play, board.getCells()[loc.y+1][loc.x]);
-                n--;
-
-            //}
-        }
-
+    	System.out.println(n);
+    	while(n != 0) {
+    	Scanner scan = new Scanner(System.in);
+    	String character = scan.nextLine();
+    	List<Card> playerCards = play.getHand().getCards();
+    	if(character.contains("w")) {
+    		System.out.println(play.getLocation().getXPos() + " " + (play.getLocation().getYPos()+1));
+    		 moveCharacter(play,new Cell(play.getCharacterType(),play.getLocation().getXPos(),play.getLocation().getYPos()+1));
+    		 n--;	
+    	}
+    	//Temp condition to test out createSuggestion method
+    	//final version to be triggered by room location
+    	else if(character.contains("s")) {
+    		createSuggestion(playerCards, play);
+    		
+    		n--;
+    	}
+    	}
+    	
     }
-
 
     //------------------------
     // INTERFACE
@@ -513,6 +479,20 @@ public class Game
         return currentTurn;
     }
 
+    public Tuple getSuggestion()
+    {
+        return suggestion;
+    }
+
+    public Card getRefute()
+    {
+        return refute;
+    }
+
+    public Tuple getAccusation()
+    {
+        return accusation;
+    }
 
     public boolean getGameWon()
     {
@@ -520,21 +500,114 @@ public class Game
     }
 
 
+    public String toString()
+    {
+        return super.toString() + "["+
+                "dice" + ":" + getDice()+ "," +
+                "currentTurn" + ":" + getCurrentTurn()+ "," +
+                "gameWon" + ":" + getGameWon()+ "]" + System.getProperties().getProperty("line.separator") +
+                "  " + "board" + "=" + (getBoard() != null ? !getBoard().equals(this)  ? getBoard().toString().replaceAll("  ","    ") : "this" : "null") + System.getProperties().getProperty("line.separator") +
+                "  " + "players" + "=" + (getPlayers() != null ? !getPlayers().equals(this)  ? getPlayers().toString().replaceAll("  ","    ") : "this" : "null") + System.getProperties().getProperty("line.separator") +
+                "  " + "murderDetails" + "=" + (getMurderDetails() != null ? !getMurderDetails().equals(this)  ? getMurderDetails().toString().replaceAll("  ","    ") : "this" : "null") + System.getProperties().getProperty("line.separator") +
+                "  " + "suggestion" + "=" + (getSuggestion() != null ? !getSuggestion().equals(this)  ? getSuggestion().toString().replaceAll("  ","    ") : "this" : "null") + System.getProperties().getProperty("line.separator") +
+                "  " + "refute" + "=" + (getRefute() != null ? !getRefute().equals(this)  ? getRefute().toString().replaceAll("  ","    ") : "this" : "null") + System.getProperties().getProperty("line.separator") +
+                "  " + "accusation" + "=" + (getAccusation() != null ? !getAccusation().equals(this)  ? getAccusation().toString().replaceAll("  ","    ") : "this" : "null");
+    }
+
     public boolean removeTuple(Tuple tuple) {
-        return gameWon;
+		return gameWon;
         // TODO Auto-generated method stub
 
     }
 
-    public int indexOfTuple(Tuple tuple) {
-        // TODO Auto-generated method stub
-        return 0;
-    }
+	public int indexOfTuple(Tuple tuple) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 
-    public boolean addTuple(Tuple tuple) {
-        // TODO Auto-generated method stub
-        return false;
-    }
+	public boolean addTuple(Tuple tuple) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	public static void createSuggestion(List<Card> playerCards, Character play) {
+		CharacterCard sCharacter = null;
+		WeaponCard sWeapon = null;
+		RoomCard sRoom = null;
+		List<CharacterCard> characterChoice = new ArrayList<CharacterCard>();
+		List<WeaponCard> weaponChoice = new ArrayList<WeaponCard>();
+		List<RoomCard> roomChoice = new ArrayList<RoomCard>();
+		for(CharacterCard c: charCards) {
+			if(c.hashCode() != play.hashCode() && !playerCards.contains(c)) {
+				characterChoice.add(c);
+			}
+		}
+		for(WeaponCard w: weaponCards) {
+			if(!playerCards.contains(w)) {
+				weaponChoice.add(w);
+			}
+		}
+		
+		for(RoomCard r: roomCards) {
+			if(!playerCards.contains(r)) {
+				roomChoice.add(r);
+			}
+		}
+		
+		System.out.println("Choose a character (enter number of character to choose):");
+		int index = 1;
+		for(CharacterCard c : characterChoice) {
+			System.out.println(index + ". " + c.getName());
+			index++;
+		}
+		Scanner scan2 = new Scanner(System.in);
+		if(scan2.hasNextInt()) {
+			sCharacter = characterChoice.get(scan2.nextInt() - 1);
+			System.out.println(sCharacter.getName() + " was chosen.");
+		}
+		else {
+			System.out.println("Use numbers to choose character.");
+		}
+		index = 1;
+		System.out.println("Choose a character (enter number of weapon to choose):");
+		for(WeaponCard w : weaponChoice) {
+			System.out.println(index + ". " + w.getName());
+			index++;
+		}
+		if(scan2.hasNextInt()) {
+			sWeapon = weaponChoice.get(scan2.nextInt() - 1);
+			System.out.println(sWeapon.getName() + " was chosen.");
+		}
+		else {
+			System.out.println("Use numbers to choose weapon.");
+		}
+		
+		index = 1;
+		//temp code, room to be set by location of player
+		System.out.println("Choose a character (enter number of room to choose):");
+		for(RoomCard r : roomChoice) {
+			System.out.println(index + ". " + r.getName());
+			index++;
+		}
+		if(scan2.hasNextInt()) {
+			sRoom = roomChoice.get(scan2.nextInt() - 1);
+			System.out.println(sRoom.getName() + " is chosen.");
+		}
+		else {
+			System.out.println("Use numbers to choose weapon.");
+		}
+		
+		if(sCharacter != null && sWeapon != null && sRoom != null) {
+			suggestion = new Suggestion((players.indexOf(play) + 1), sCharacter, sWeapon, sRoom);
+			suggestionMade = true;
+			System.out.println(suggestion.toString());
+		}
+		else {
+			System.out.println("Error with suggestion!");
+		}
+	}
+	
+	public static void createSuggestion2(List<Card> playerCards, Character play) {
+		
+	}
 }
-
-
