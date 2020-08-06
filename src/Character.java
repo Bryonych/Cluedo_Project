@@ -25,12 +25,12 @@ public class Character
   // CONSTRUCTOR
   //------------------------
 
-  public Character(String aName, Cell aLocation)
+  public Character(String aName, Cell aLocation, Cell.Type character)
   {
     name = aName;
     location = aLocation;
     this.currentRoom = Cell.Type.START;
-   // this.characterType = t;
+    characterType = character;
 
   }
 
