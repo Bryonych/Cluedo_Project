@@ -34,7 +34,16 @@ public class RoomCard extends Card
     return name;
   }
 
+  @Override
+  public boolean equals(Object obj){
+    if (this == obj)  return true;
+    if (obj == null)  return false;
+    if (obj.getClass() != this.getClass())  return false;
+    RoomCard other = (RoomCard)obj;
+    return this.name.equals(other.name);
+  }
 
+  @Override
   public String toString()
   {
     return " ------------------- \n" +
