@@ -153,12 +153,12 @@ public class Game
      */
     public static void setPlayers(){
         int count = 1;
-        Character white = new Character("Mrs White",  board.getCells()[0][10]);
-        Character green = new Character("Mr Green", board.getCells()[0][19]);
-        Character peacock = new Character("Mrs Peacock", board.getCells()[7][29]);
-        Character plum = new Character("Prof Plum",board.getCells()[24][29]);
-        Character scarlett = new Character("Miss Scarlet", board.getCells()[29][9]);
-        Character mustard = new Character("Col Mustard", board.getCells()[20][0]);
+        Character white = new Character("Mrs White",  board.getCells()[0][10], Cell.Type.WHITE);
+        Character green = new Character("Mr Green", board.getCells()[0][19], Cell.Type.GREEN);
+        Character peacock = new Character("Mrs Peacock", board.getCells()[7][29], Cell.Type.PEACOCK);
+        Character plum = new Character("Prof Plum",board.getCells()[24][29], Cell.Type.PLUM);
+        Character scarlett = new Character("Miss Scarlet", board.getCells()[29][9], Cell.Type.SCARLETT);
+        Character mustard = new Character("Col Mustard", board.getCells()[20][0], Cell.Type.MUSTARD);
         characters.add(white);
         characters.add(green);
         characters.add(peacock);
@@ -169,18 +169,16 @@ public class Game
         CharacterSelection.addAll(characters);
         int counter = numPlayers;
         while (counter != 0) {
-            ArrayList<Character> temp = new ArrayList<Character>();
-            temp.addAll(CharacterSelection);
             System.out.println("Player "+ count+ " Please Select Your Character");
             System.out.println("Please press Y for Yes, Any Other letter button to scroll next");
             Scanner scan;
-            for(int i = 0; i < temp.size();) {
-                System.out.println(temp.get(i).getName());
+            for(int i = 0; i < characters.size();) {
+                System.out.println(characters.get(i).getName());
                 scan = new Scanner(System.in);
-                String read = scan.nextLine();
+                String read = scan.nextLine().toUpperCase();
                 if(read.contains("Y")) {
-                    CharacterSelection.remove(temp.get(i));
-                    players.add(temp.get(i));
+                    CharacterSelection.remove(characters.get(i));
+                    players.add(characters.get(i));
                     counter--;
                     count++;
                     break;
@@ -337,7 +335,7 @@ public class Game
         Cell current = moving.getLocation();
         Cell.Type oldRoom = moving.getCurrentRoom();
         Cell.Type character = moving.getCharacterType();
-       System.out.println(moving.getCharacterType() + " " + oldRoom + " " + " " + destination.getType());
+        System.out.println(moving.getCharacterType() + " " + oldRoom + " " + " " + destination.getType());
         moving.setCurrentRoom(destination.getType());
         current.changeType(oldRoom);
         destination.changeType(character);
@@ -378,7 +376,7 @@ public class Game
 //    System.out.println(sb);
 //    System.out.println("         Lounge                Hall                Study");
 //  }
-    
+
 
     public static void main(String[] args) throws NumberFormatException, IOException{
         Scanner scan = new Scanner(System.in);
@@ -387,41 +385,68 @@ public class Game
         Game game = new Game(numPlayers);
         System.out.flush();
         Cell[][] cell = board.getCells();
+        printBoard(cell);
         int count = 0;
-       // printBoard(cell); //Just printing the board
+        // printBoard(cell); //Just printing the board
         for(Character play : players) {
             count++;
             System.out.println("Player " + count + " " + play.getName() + " Your Turn");
-           keyRead(1,play); //Just a temp move method
-           printBoard(cell); //Just printing the board temp
+            System.out.print(play.getHand());
+            keyRead(1,play); //Just a temp move method
+
         }
-        
-        
+        printBoard(cell); //Just printing the board temp
+
     }
     public static void printBoard(Cell[][] cell) {
+        System.out.println("               Kitchen                          Ball Room                      Conservatory");
         for(int i = 0; i < 30; i++) {
-        	System.out.print(i + " \t");
+            if (i == 13){
+                System.out.print("Dining ");
+            }
+            else if (i == 14){
+                System.out.print("Room   ");
+            }
+            else {
+                System.out.print("       ");
+            }
+            System.out.print(i + " \t");
             for(int j = 0; j < 30; j++) {
-              //  System.out.print(cell[i][j].getType().toString() + " ");
-            	System.out.print(cell[i][j] +" ");
+                //  System.out.print(cell[i][j].getType().toString() + " ");
+                System.out.print(cell[i][j] +" ");
+            }
+            if (i == 11){
+                System.out.print(" Billiard");
+            }
+            else if (i == 12){
+               System.out.print( " Room");
+            }
+            else if (i == 20){
+                System.out.print(" Library");
             }
             System.out.println("");
         }
+        System.out.println("               Lounge                           Hall                           Study\n");
     }
     public static void keyRead(int n,Character play) {
-    	System.out.println(n);
-    	while(n != 0) {
-    	Scanner scan = new Scanner(System.in);
-    	String character = scan.nextLine();
-    	if(character.contains("w")) {
-    		System.out.println(play.getLocation().getXPos() + " " + (play.getLocation().getYPos()+1));
-    		 moveCharacter(play,new Cell(play.getCharacterType(),play.getLocation().getXPos(),play.getLocation().getYPos()+1));
-    		 n--;
-    		
-    	}
-    	}
-    	
+        System.out.println(n);
+        while(n != 0) {
+            //Scanner scan = new Scanner(System.in);
+            //String character = scan.nextLine();
+            //if(character.contains("w")) {
+                System.out.println(play.getLocation().getXPos() + " " + (play.getLocation().getYPos()+1));
+
+                //moveCharacter(play,new Cell(play.getCharacterType(),play.getLocation().getXPos(),play.getLocation().getYPos()+1));
+                Cell currentLoc = play.getLocation();
+                Point loc = new Point(currentLoc.getXPos(), currentLoc.getYPos());
+                moveCharacter(play, board.getCells()[loc.y+1][loc.x]);
+                n--;
+
+            //}
+        }
+
     }
+
 
     //------------------------
     // INTERFACE
@@ -488,20 +513,20 @@ public class Game
     }
 
     public boolean removeTuple(Tuple tuple) {
-		return gameWon;
+        return gameWon;
         // TODO Auto-generated method stub
 
     }
 
-	public int indexOfTuple(Tuple tuple) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+    public int indexOfTuple(Tuple tuple) {
+        // TODO Auto-generated method stub
+        return 0;
+    }
 
-	public boolean addTuple(Tuple tuple) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    public boolean addTuple(Tuple tuple) {
+        // TODO Auto-generated method stub
+        return false;
+    }
 }
 
 
