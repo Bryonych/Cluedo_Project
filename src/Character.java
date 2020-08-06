@@ -38,9 +38,9 @@ public class Character
     return characterType;
   }
 
-  //------------------------
-  // INTERFACE
-  //------------------------
+  public void setHand(Hand newHand){
+    this.hand = newHand;
+  }
 
   public Cell.Type getCurrentRoom(){
     return currentRoom;
