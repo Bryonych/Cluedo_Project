@@ -23,16 +23,13 @@ public class Game
     private List<Room> rooms = new ArrayList<Room>();
     private List<Weapon> weapons = new ArrayList<Weapon>();
     private Tuple murderDetails;
+    private CharacterCard murderer;
+    private RoomCard scene;
+    private WeaponCard weapon;
     private Character currentTurn;
-    private Tuple suggestion;
-    private Card refute;
-    private Tuple accusation;
     private boolean gameWon;
     private static int numPlayers;
 
-    //Game Associations
-    private List<Board> boards;
-    private List<Tuple> tuples;
 
     //------------------------
     // CONSTRUCTOR
@@ -175,7 +172,6 @@ public class Game
             System.out.println("Please press Y for Yes, Any Other letter button to scroll next");
             Scanner scan;
             for(int i = 0; i < temp.size();) {
-
                 System.out.println(temp.get(i).getName());
                 scan = new Scanner(System.in);
                 String read = scan.nextLine().toUpperCase();
@@ -196,15 +192,15 @@ public class Game
      * Creates all the rooms and sets the cell where the weapon sits in the room
      */
     public void createRooms(){
-        rooms.add(new Room("Kitchen", board.getCells()[2][2], Cell.Type.KITCHEN));
-        rooms.add(new Room("Ball Room", board.getCells()[2][14], Cell.Type.BALLROOM));
-        rooms.add(new Room("Conservatory", board.getCells()[2][27], Cell.Type.CONSERVATORY));
-        rooms.add(new Room("Dining Room", board.getCells()[13][2], Cell.Type.DINING));
-        rooms.add(new Room("Billiard Room", board.getCells()[13][27], Cell.Type.BILLIARD));
-        rooms.add(new Room("Library", board.getCells()[20][27], Cell.Type.LIBRARY));
-        rooms.add(new Room("Lounge", board.getCells()[27][2], Cell.Type.LOUNGE));
-        rooms.add(new Room("Hall", board.getCells()[27][14], Cell.Type.HALL));
-        rooms.add(new Room("Study", board.getCells()[27][27], Cell.Type.STUDY));
+        rooms.add(new Room("Kitchen", board.getCells()[2][2], Cell.Type.KITCHEN, board.getCells()[2][3]));
+        rooms.add(new Room("Ball Room", board.getCells()[2][14], Cell.Type.BALLROOM, board.getCells()[2][15]));
+        rooms.add(new Room("Conservatory", board.getCells()[2][27], Cell.Type.CONSERVATORY, board.getCells()[2][26]));
+        rooms.add(new Room("Dining Room", board.getCells()[13][2], Cell.Type.DINING, board.getCells()[13][3]));
+        rooms.add(new Room("Billiard Room", board.getCells()[13][27], Cell.Type.BILLIARD, board.getCells()[13][26]));
+        rooms.add(new Room("Library", board.getCells()[20][27], Cell.Type.LIBRARY, board.getCells()[20][26]));
+        rooms.add(new Room("Lounge", board.getCells()[27][2], Cell.Type.LOUNGE, board.getCells()[27][3]));
+        rooms.add(new Room("Hall", board.getCells()[27][14], Cell.Type.HALL, board.getCells()[27][15]));
+        rooms.add(new Room("Study", board.getCells()[27][27], Cell.Type.STUDY, board.getCells()[27][26]));
     }
 
     public void createWeapons(){
@@ -277,9 +273,9 @@ public class Game
      */
     public Tuple setMurderDetails(){
         Random rand = new Random();
-        CharacterCard murderer = charCards.get(rand.nextInt(charCards.size()));
-        RoomCard scene = roomCards.get(rand.nextInt(roomCards.size()));
-        WeaponCard weapon = weaponCards.get(rand.nextInt(weaponCards.size()));
+        murderer = charCards.get(rand.nextInt(charCards.size()));
+        scene = roomCards.get(rand.nextInt(roomCards.size()));
+        weapon = weaponCards.get(rand.nextInt(weaponCards.size()));
         allCards.remove(murderer);
         allCards.remove(scene);
         allCards.remove(weapon);
@@ -297,6 +293,62 @@ public class Game
                 newHand.add(allCards.get(j));
             }
             players.get(i).setHand(new Hand(newHand, players.get(i)));
+        }
+        allCards.add(murderer);
+        allCards.add(scene);
+        allCards.add(weapon);
+    }
+
+    /**
+     * Randomly selects a number between 2 and 12 for the dice roll
+     * @return
+     */
+    public int rollDice(){
+        dice = 2 + (int)(Math.random()*11);
+        return dice;
+    }
+
+    /**
+     * Checks a murder suggestion from a player and shows one card from each of the other players hands or displays if
+     * there are no cards to show
+     * @param murderAccused
+     * @param roomAccused
+     * @param weaponAccused
+     * @param accuser
+     */
+    public void checkSuggestion(CharacterCard murderAccused, RoomCard roomAccused, WeaponCard weaponAccused, Character accuser){
+        for (Character c : players){
+            boolean cardShown = false;
+            if (!c.equals(accuser)){
+                for (Card card : c.getHand().getCards()){
+                    if (card.equals(murderAccused) || card.equals(roomAccused) || card.equals(weaponAccused)){
+                        System.out.println(c.getName() + " shows card: " + c.getName());
+                        cardShown = true;;
+                        break;
+                    }
+                }
+            }
+            if (!cardShown){
+                System.out.println(c.getName() + " has no cards to show");
+            }
+        }
+    }
+
+    /**
+     * Checks the accusation made against the murder details. If correct, the player has won. If not, they are excluded
+     * @param murderAccused     Character being accused
+     * @param roomAccused       Room accusation
+     * @param weaponAccused     Weapon accusation
+     * @param accuser           Player making the accusation
+     */
+    public void checkAccusation(CharacterCard murderAccused, RoomCard roomAccused, WeaponCard weaponAccused, Character accuser){
+        if (murderDetails.getMurderer().equals(murderAccused) && murderDetails.getCrimeScene().equals(roomAccused) && murderDetails.getWeapon().equals(weaponAccused)){
+            System.out.println("Correct! You have won the game!");
+            gameWon = true;
+        }
+        else {
+            System.out.println("Incorrect Accusation - you may make no further suggestions");
+            players.remove(accuser);
         }
     }
 
@@ -327,7 +379,7 @@ public class Game
         Cell moveTo = destination.getWeaponSpot();
         moveFrom.changeType(current.getType());
         moveTo.changeType(moving.getType());
-        //redraw();
+        printBoard(board.getCells());
     }
     /**
      * Moves Chracter
@@ -338,47 +390,27 @@ public class Game
         Cell current = moving.getLocation();
         Cell.Type oldRoom = moving.getCurrentRoom();
         Cell.Type character = moving.getCharacterType();
-        System.out.println(moving.getCharacterType() + " " + oldRoom + " " + " " + destination.getType());
+        //System.out.println(moving.getCharacterType() + " " + oldRoom + " " + " " + destination.getType());
         moving.setCurrentRoom(destination.getType());
         current.changeType(oldRoom);
         destination.changeType(character);
-        //redraw();
+        printBoard(board.getCells());
     }
 
-    //Handled in GUI
-//  public void printBoard(){
-//    Cell[][] squares = board.getCells();
-//    StringBuilder sb = new StringBuilder();
-//    for (int i = 0; i < 30; i++){
-//      if (i == 13){
-//        sb.append("Dining ");
-//      }
-//      else if (i == 14){
-//        sb.append("Room   ");
-//      }
-//      else {
-//        sb.append("       ");
-//      }
-//      for (int j = 0; j < 30; j++){
-//         sb.append(squares[i][j]);
-//      }
-//      if (i == 11){
-//        sb.append(" Billiard");
-//      }
-//      else if (i == 12){
-//        sb.append( " Room");
-//      }
-//      else if (i == 20){
-//        sb.append(" Library");
-//      }
-//      if (i != 29) {
-//        sb.append("\n");
-//      }
-//    }
-//    System.out.println("         Kitchen               Ball Room           Conservatory");
-//    System.out.println(sb);
-//    System.out.println("         Lounge                Hall                Study");
-//  }
+    /**
+     * Moves a character to a room when a suggestion they are the murderer is made
+     * @param moving
+     * @param newRoom
+     */
+    public static void moveCharacterToRoom(Character moving, Room newRoom){
+        Cell current = moving.getLocation();
+        Cell.Type oldRoom = moving.getCurrentRoom();
+        Cell.Type character = moving.getCharacterType();
+        moving.setCurrentRoom(newRoom.getType());
+        current.changeType(oldRoom);
+        newRoom.getCharacterSpot().changeType(character);
+        printBoard(board.getCells());
+    }
 
 
     public static void main(String[] args) throws NumberFormatException, IOException{
@@ -401,6 +433,7 @@ public class Game
         printBoard(cell); //Just printing the board temp
 
     }
+
     public static void printBoard(Cell[][] cell) {
         System.out.println("               Kitchen                          Ball Room                      Conservatory");
         for(int i = 0; i < 30; i++) {
@@ -480,40 +513,12 @@ public class Game
         return currentTurn;
     }
 
-    public Tuple getSuggestion()
-    {
-        return suggestion;
-    }
-
-    public Card getRefute()
-    {
-        return refute;
-    }
-
-    public Tuple getAccusation()
-    {
-        return accusation;
-    }
 
     public boolean getGameWon()
     {
         return gameWon;
     }
 
-
-    public String toString()
-    {
-        return super.toString() + "["+
-                "dice" + ":" + getDice()+ "," +
-                "currentTurn" + ":" + getCurrentTurn()+ "," +
-                "gameWon" + ":" + getGameWon()+ "]" + System.getProperties().getProperty("line.separator") +
-                "  " + "board" + "=" + (getBoard() != null ? !getBoard().equals(this)  ? getBoard().toString().replaceAll("  ","    ") : "this" : "null") + System.getProperties().getProperty("line.separator") +
-                "  " + "players" + "=" + (getPlayers() != null ? !getPlayers().equals(this)  ? getPlayers().toString().replaceAll("  ","    ") : "this" : "null") + System.getProperties().getProperty("line.separator") +
-                "  " + "murderDetails" + "=" + (getMurderDetails() != null ? !getMurderDetails().equals(this)  ? getMurderDetails().toString().replaceAll("  ","    ") : "this" : "null") + System.getProperties().getProperty("line.separator") +
-                "  " + "suggestion" + "=" + (getSuggestion() != null ? !getSuggestion().equals(this)  ? getSuggestion().toString().replaceAll("  ","    ") : "this" : "null") + System.getProperties().getProperty("line.separator") +
-                "  " + "refute" + "=" + (getRefute() != null ? !getRefute().equals(this)  ? getRefute().toString().replaceAll("  ","    ") : "this" : "null") + System.getProperties().getProperty("line.separator") +
-                "  " + "accusation" + "=" + (getAccusation() != null ? !getAccusation().equals(this)  ? getAccusation().toString().replaceAll("  ","    ") : "this" : "null");
-    }
 
     public boolean removeTuple(Tuple tuple) {
         return gameWon;
