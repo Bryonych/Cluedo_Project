@@ -169,16 +169,19 @@ public class Game
         CharacterSelection.addAll(characters);
         int counter = numPlayers;
         while (counter != 0) {
+            ArrayList<Character> temp = new ArrayList<Character>();
+            temp.addAll(CharacterSelection);
             System.out.println("Player "+ count+ " Please Select Your Character");
             System.out.println("Please press Y for Yes, Any Other letter button to scroll next");
             Scanner scan;
-            for(int i = 0; i < characters.size();) {
-                System.out.println(characters.get(i).getName());
+            for(int i = 0; i < temp.size();) {
+
+                System.out.println(temp.get(i).getName());
                 scan = new Scanner(System.in);
                 String read = scan.nextLine().toUpperCase();
                 if(read.contains("Y")) {
-                    CharacterSelection.remove(characters.get(i));
-                    players.add(characters.get(i));
+                    CharacterSelection.remove(temp.get(i));
+                    players.add(temp.get(i));
                     counter--;
                     count++;
                     break;
