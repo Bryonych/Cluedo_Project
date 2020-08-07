@@ -1,53 +1,43 @@
-/*PLEASE DO NOT EDIT THIS CODE*/
-/*This code was generated using the UMPLE 1.30.0.5074.a43557235 modeling language!*/
-
-
-
-// line 83 "model.ump"
-// line 173 "model.ump"
 public class RoomCard extends Card
 {
 
-  //------------------------
-  // MEMBER VARIABLES
-  //------------------------
+    //------------------------
+    // MEMBER VARIABLES
+    //------------------------
 
-  //RoomCard Attributes
-  private String name;
+    //RoomCard Attributes
+    private String name;
+    private Room room;
 
-  //------------------------
-  // CONSTRUCTOR
-  //------------------------
+    //------------------------
+    // CONSTRUCTOR
+    //------------------------
 
-  public RoomCard(String name)
-  {
-    super(name);
-    this.name = name;
-  }
+    public RoomCard(String name, Room room)
+    {
+        super(name);
+        this.name = name;
+        this.room = room;
+    }
 
-  //------------------------
-  // INTERFACE
-  //------------------------
+    //------------------------
+    // INTERFACE
+    //------------------------
 
-  public String getName()
-  {
-    return name;
-  }
+    public String getName()
+    {
+        return name;
+    }
 
-  @Override
-  public boolean equals(Object obj){
-    if (this == obj)  return true;
-    if (obj == null)  return false;
-    if (obj.getClass() != this.getClass())  return false;
-    RoomCard other = (RoomCard)obj;
-    return this.name.equals(other.name);
-  }
+    public Room getRoom(){
+        return room;
+    }
 
-  @Override
-  public String toString()
-  {
-    return " ------------------- \n" +
-            " Card: " + name + "\n" +
-            " -------------------\n";
-  }
+
+    public String toString()
+    {
+        return " ------------------- \n" +
+                " Card: " + name + "\n" +
+                " ------------------- \n";
+    }
 }
