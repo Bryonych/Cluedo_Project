@@ -363,11 +363,10 @@ public class Game
         Cell current = moving.getLocation();
         Cell.Type oldRoom = moving.getCurrentRoom();
         Cell.Type character = moving.getCharacterType();
-        System.out.println(moving.getCharacterType() + " " + oldRoom + " " + " " + destination.getType());
         moving.setCurrentRoom(destination.getType());
         current.changeType(oldRoom);
         destination.changeType(character);
-        printBoard(board.getCells());
+        //printBoard(board.getCells());
     }
 
     /**
@@ -399,10 +398,17 @@ public class Game
         int count = 0;
         for(Character play : players) {
             count++;
+            int diceRoll = game.rollDice();
             System.out.println("Player " + count + " " + play.getName() + " Your Turn");
             System.out.print(play.getHand());
-            //keyRead(1,play); //Just a temp move method
-            moveCharacter(play, board.getCells()[6][5]);
+            while(!scan.nextLine().equalsIgnoreCase("d")){
+                System.out.println("Press 'D' key to roll the dice");
+
+            }
+            System.out.println("You have rolled a: " + diceRoll + "\nPlease move using the WASD keys");
+            printBoard(cell);
+            keyRead(diceRoll,play); //Just a temp move method
+            //moveCharacter(play, board.getCells()[6][5]); //used for testing
             if(play.getCurrentRoom().equals(Cell.Type.KITCHEN) || play.getCurrentRoom().equals(Cell.Type.BALLROOM) || play.getCurrentRoom().equals(Cell.Type.CONSERVATORY) ||
                     play.getCurrentRoom().equals(Cell.Type.DINING) || play.getCurrentRoom().equals(Cell.Type.BILLIARD) || play.getCurrentRoom().equals(Cell.Type.LIBRARY) ||
                     play.getCurrentRoom().equals(Cell.Type.LOUNGE) || play.getCurrentRoom().equals(Cell.Type.HALL) || play.getCurrentRoom().equals(Cell.Type.STUDY)) {
@@ -469,7 +475,7 @@ public class Game
     }
 
     public static void keyRead(int n,Character play) {
-        System.out.println(n);
+
         while(n != 0) {
             //Scanner scan = new Scanner(System.in);
             //String character = scan.nextLine();
