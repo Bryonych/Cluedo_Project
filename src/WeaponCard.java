@@ -1,54 +1,43 @@
-/*PLEASE DO NOT EDIT THIS CODE*/
-/*This code was generated using the UMPLE 1.30.0.5074.a43557235 modeling language!*/
-
-
-
-// line 77 "model.ump"
-// line 168 "model.ump"
 public class WeaponCard extends Card
 {
 
-  //------------------------
-  // MEMBER VARIABLES
-  //------------------------
+    //------------------------
+    // MEMBER VARIABLES
+    //------------------------
 
-  //WeaponCard Attributes
-  private String name;
+    //WeaponCard Attributes
+    private String name;
+    private Weapon weapon;
 
-  //------------------------
-  // CONSTRUCTOR
-  //------------------------
+    //------------------------
+    // CONSTRUCTOR
+    //------------------------
 
-  public WeaponCard(String name)
-  {
-    super(name);
-    this.name = name;
-  }
+    public WeaponCard(String name, Weapon weapon)
+    {
+        super(name);
+        this.name = name;
+        this.weapon = weapon;
+    }
 
-  //------------------------
-  // INTERFACE
-  //------------------------
+    //------------------------
+    // INTERFACE
+    //------------------------
 
 
-  public String getName()
-  {
-    return name;
-  }
+    public String getName()
+    {
+        return name;
+    }
 
-  @Override
-  public boolean equals(Object obj){
-      if (this == obj)  return true;
-      if (obj == null)  return false;
-      if (obj.getClass() != this.getClass())  return false;
-      WeaponCard other = (WeaponCard)obj;
-      return this.name.equals(other.name);
-  }
+    public Weapon getWeapon(){
+        return weapon;
+    }
 
-  @Override
-  public String toString()
-  {
-    return " ------------------- \n" +
-            " Card: " + name + "\n" +
-            " -------------------\n";
-  }
+    public String toString()
+    {
+        return " ------------------- \n" +
+                " Card: " + name + "\n" +
+                " ------------------- \n";
+    }
 }
