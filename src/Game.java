@@ -1,8 +1,7 @@
 import java.awt.Point;
 import java.io.IOException;
 import java.util.*;
-// line 2 "model.ump"
-// line 109 "model.ump"
+
 public class Game
 {
     //------------------------
@@ -359,14 +358,16 @@ public class Game
      * @param moving
      * @param destination
      */
-    public static void moveCharacter(Character moving, Cell destination){
+    public void moveCharacter(Character moving, Cell destination){
         Cell current = moving.getLocation();
+        Point loc = new Point(current.getXPos(), current.getYPos());
         Cell.Type oldRoom = moving.getCurrentRoom();
         Cell.Type character = moving.getCharacterType();
         moving.setCurrentRoom(destination.getType());
-        current.changeType(oldRoom);
+        board.changeCell(new Cell(oldRoom, loc.x, loc.y), loc.x, loc.y);
         destination.changeType(character);
-        //printBoard(board.getCells());
+        moving.setLocation(destination);
+        printBoard(board.getCells());
     }
 
     /**
@@ -374,7 +375,7 @@ public class Game
      * @param moving
      * @param newRoom
      */
-    public static void moveCharacterToRoom(Character moving, Room newRoom){
+    public void moveCharacterToRoom(Character moving, Room newRoom){
         Cell current = moving.getLocation();
         Cell.Type oldRoom = moving.getCurrentRoom();
         Cell.Type character = moving.getCharacterType();
@@ -405,9 +406,9 @@ public class Game
                 System.out.println("Press 'D' key to roll the dice");
 
             }
-            System.out.println("You have rolled a: " + diceRoll + "\nPlease move using the WASD keys");
+            //System.out.println("You have rolled a: " + diceRoll + "\nPlease move using the WASD keys");
             printBoard(cell);
-            keyRead(diceRoll,play); //Just a temp move method
+            game.keyRead(diceRoll,play); //Just a temp move method
             //moveCharacter(play, board.getCells()[6][5]); //used for testing
             if(play.getCurrentRoom().equals(Cell.Type.KITCHEN) || play.getCurrentRoom().equals(Cell.Type.BALLROOM) || play.getCurrentRoom().equals(Cell.Type.CONSERVATORY) ||
                     play.getCurrentRoom().equals(Cell.Type.DINING) || play.getCurrentRoom().equals(Cell.Type.BILLIARD) || play.getCurrentRoom().equals(Cell.Type.LIBRARY) ||
@@ -474,27 +475,29 @@ public class Game
         System.out.println("               Lounge                           Hall                           Study\n");
     }
 
-    
-       public static void keyRead(int n,Character play) {
+
+    public void keyRead(int n,Character play) {
         // public static void keyRead(int n,Character play,Cell[][] Cell) {
         System.out.println("Rolled: "+n);
         System.out.println("Press z to go up, Press q to go down, Press a to go left, Press d to right");
-        Cell currentLoc = play.getLocation();
-        System.out.println(currentLoc.getYPos());   
-        int nY = currentLoc.getYPos()+1;
-        int nX = currentLoc.getXPos()+1;
+
+        //System.out.println(currentLoc.getYPos());
+
         while(n != 0) { // Counter, for the dice to tell how many times they can go.
+            Cell currentLoc = play.getLocation();
+            int nY = currentLoc.getYPos()+1;
+            int nX = currentLoc.getXPos()+1;
             Scanner scan = new Scanner(System.in);
             String character = scan.nextLine();
 
             if(character.contains("q")) {
-          
+
                 // Cell f =board.getCells()[nY][currentLoc.getXPos()];
                 //Point loc = new Point(currentLoc.getXPos(), currentLoc.getYPos());
                 moveCharacter(play, board.getCells()[nY][currentLoc.getXPos()]);
                 //Cell.Type cha = play.getCharacterType();
                 //Cell.Type oldRoom = play.getCurrentRoom();
-                //currentLoc.changeType(f.getType());                           
+                //currentLoc.changeType(f.getType());
                 //System.out.println(currentLoc);
                 //f.changeType(cha);
                 //play.setCurrentRoom(f.getType());
@@ -503,33 +506,33 @@ public class Game
                 // System.out.println(loc.y);
                 //System.out.println(loc.y+1);
                 //System.out.println(currentLoc.getYPos()+1);
-                nY++;
+                //nY++;
                 n--;
                 System.out.println("Remain moves: "+n);
             }
-             if(character.contains("z")) {
+            else if(character.contains("z")) {
 
-               //Cell currentLoc = play.getLocation();
-               // Point loc = new Point(currentLoc.getXPos(), currentLoc.getYPos());
-                moveCharacter(play, board.getCells()[nY-1][currentLoc.getXPos()]);                
-                nY--;
+                //Cell currentLoc = play.getLocation();
+                // Point loc = new Point(currentLoc.getXPos(), currentLoc.getYPos());
+                moveCharacter(play, board.getCells()[nY-1][currentLoc.getXPos()]);
+                //nY--;
                 //board.getCells()[loc.y][loc.x+1]
                 n--;
                 System.out.println("Remain moves: "+n);
             }
-             if(character.contains("a")) {
+            else if(character.contains("a")) {
                 // Cell currentLoc = play.getLocation();
                 //Point loc = new Point(currentLoc.getXPos()-1, currentLoc.getYPos());
-               moveCharacter(play, board.getCells()[currentLoc.getYPos()][nX-1]);    
-               nX--;
+                moveCharacter(play, board.getCells()[currentLoc.getYPos()][nX-1]);
+                //nX--;
                 n--;
                 System.out.println("Remain moves: "+n);
             }
-             if(character.contains("d")) {
+            else if(character.contains("d")) {
                 //  Cell currentLoc = play.getLocation();
-               // Point loc = new Point(currentLoc.getXPos()+1, currentLoc.getYPos());
-                moveCharacter(play, board.getCells()[currentLoc.getYPos()][nX]); 
-                nX++;
+                // Point loc = new Point(currentLoc.getXPos()+1, currentLoc.getYPos());
+                moveCharacter(play, board.getCells()[currentLoc.getYPos()][nX]);
+                //nX++;
                 n--;
                 System.out.println("Remain moves: "+n);
             }
@@ -540,91 +543,93 @@ public class Game
 
 
 
-        public void createSuggestion(List<Card> playerCards, Character play) {
-            CharacterCard sCharacter = null;
-            WeaponCard sWeapon = null;
-            RoomCard sRoom = null;
-            List<CharacterCard> characterChoice = new ArrayList<CharacterCard>();
-            List<WeaponCard> weaponChoice = new ArrayList<WeaponCard>();
-            List<RoomCard> roomChoice = new ArrayList<RoomCard>();
-            for(CharacterCard c: charCards) {
-                if(c.hashCode() != play.hashCode() && !playerCards.contains(c)) {
-                    characterChoice.add(c);
-                }
+    public void createSuggestion(List<Card> playerCards, Character play) {
+        CharacterCard sCharacter = null;
+        WeaponCard sWeapon = null;
+        RoomCard sRoom = null;
+        List<CharacterCard> characterChoice = new ArrayList<CharacterCard>();
+        List<WeaponCard> weaponChoice = new ArrayList<WeaponCard>();
+        List<RoomCard> roomChoice = new ArrayList<RoomCard>();
+        for(CharacterCard c: charCards) {
+            if(c.hashCode() != play.hashCode() && !playerCards.contains(c)) {
+                characterChoice.add(c);
             }
-            for(WeaponCard w: weaponCards) {
-                if(!playerCards.contains(w)) {
-                    weaponChoice.add(w);
-                }
-            }
-
-            for(RoomCard r: roomCards) {
-                if(!playerCards.contains(r)) {
-                    roomChoice.add(r);
-                }
-            }
-
-            System.out.println("Choose a character (enter number of character to choose):");
-            int index = 1;
-            for(CharacterCard c : characterChoice) {
-                System.out.println(index + ". " + c.getName());
-                index++;
-            }
-            Scanner scan2 = new Scanner(System.in);
-            if(scan2.hasNextInt()) {
-                sCharacter = characterChoice.get(scan2.nextInt() - 1);
-                System.out.println(sCharacter.getName() + " was chosen.");
-            }
-            else {
-                System.out.println("Use numbers to choose character.");
-            }
-            index = 1;
-            System.out.println("Choose a weapon (enter number of weapon to choose):");
-            for(WeaponCard w : weaponChoice) {
-                System.out.println(index + ". " + w.getName());
-                index++;
-            }
-            if(scan2.hasNextInt()) {
-                sWeapon = weaponChoice.get(scan2.nextInt() - 1);
-                System.out.println(sWeapon.getName() + " was chosen.");
-            }
-            else {
-                System.out.println("Use numbers to choose weapon.");
-            }
-
-            index = 1;
-            //temp code, room to be set by location of player
-            System.out.println("Choose a room (enter number of room to choose):");
-            for(RoomCard r : roomChoice) {
-                System.out.println(index + ". " + r.getName());
-                index++;
-            }
-            if(scan2.hasNextInt()) {
-                sRoom = roomChoice.get(scan2.nextInt() - 1);
-                System.out.println(sRoom.getName() + " is chosen.");
-            }
-            else {
-                System.out.println("Use numbers to choose weapon.");
-            }
-
-            if(sCharacter != null && sWeapon != null && sRoom != null) {
-                suggestion = new Suggestion((players.indexOf(play) + 1), sCharacter, sWeapon, sRoom);
-                suggestionMade = true;
-                System.out.println(suggestion.toString());
-                if (!sCharacter.getCharacter().getLocation().equals(sRoom.getRoom().getType())){
-                    moveCharacterToRoom(sCharacter.getCharacter(), sRoom.getRoom());
-                }
-                if (!sWeapon.getWeapon().getLocation().equals(sRoom.getRoom())){
-                    moveWeapon(sWeapon.getWeapon(), sRoom.getRoom());
-                }
-            }
-            else {
-                System.out.println("Error with suggestion!");
+        }
+        for(WeaponCard w: weaponCards) {
+            if(!playerCards.contains(w)) {
+                weaponChoice.add(w);
             }
         }
 
-        public static void createSuggestion2(List<Card> playerCards, Character play) {
-
+        for(RoomCard r: roomCards) {
+            if(!playerCards.contains(r)) {
+                roomChoice.add(r);
+            }
         }
+
+        System.out.println("Choose a character (enter number of character to choose):");
+        int index = 1;
+        for(CharacterCard c : characterChoice) {
+            System.out.println(index + ". " + c.getName());
+            index++;
+        }
+        Scanner scan2 = new Scanner(System.in);
+        if(scan2.hasNextInt()) {
+            sCharacter = characterChoice.get(scan2.nextInt() - 1);
+            System.out.println(sCharacter.getName() + " was chosen.");
+        }
+        else {
+            System.out.println("Use numbers to choose character.");
+        }
+        index = 1;
+        System.out.println("Choose a weapon (enter number of weapon to choose):");
+        for(WeaponCard w : weaponChoice) {
+            System.out.println(index + ". " + w.getName());
+            index++;
+        }
+        if(scan2.hasNextInt()) {
+            sWeapon = weaponChoice.get(scan2.nextInt() - 1);
+            System.out.println(sWeapon.getName() + " was chosen.");
+        }
+        else {
+            System.out.println("Use numbers to choose weapon.");
+        }
+
+        index = 1;
+        //temp code, room to be set by location of player
+        System.out.println("Choose a room (enter number of room to choose):");
+        for(RoomCard r : roomChoice) {
+            System.out.println(index + ". " + r.getName());
+            index++;
+        }
+        if(scan2.hasNextInt()) {
+            sRoom = roomChoice.get(scan2.nextInt() - 1);
+            System.out.println(sRoom.getName() + " is chosen.");
+        }
+        else {
+            System.out.println("Use numbers to choose weapon.");
+        }
+
+        if(sCharacter != null && sWeapon != null && sRoom != null) {
+            suggestion = new Suggestion((players.indexOf(play) + 1), sCharacter, sWeapon, sRoom);
+            suggestionMade = true;
+            System.out.println(suggestion.toString());
+            if (!sCharacter.getCharacter().getLocation().equals(sRoom.getRoom().getType())){
+                moveCharacterToRoom(sCharacter.getCharacter(), sRoom.getRoom());
+            }
+            if (!sWeapon.getWeapon().getLocation().equals(sRoom.getRoom())){
+                moveWeapon(sWeapon.getWeapon(), sRoom.getRoom());
+            }
+        }
+        else {
+            System.out.println("Error with suggestion!");
+        }
+    }
+
+    public static void createSuggestion2(List<Card> playerCards, Character play) {
+
+    }
 }
+
+
 
