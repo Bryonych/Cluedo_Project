@@ -474,22 +474,68 @@ public class Game
         System.out.println("               Lounge                           Hall                           Study\n");
     }
 
-    public static void keyRead(int n,Character play) {
+    
+       public static void keyRead(int n,Character play) {
+        // public static void keyRead(int n,Character play,Cell[][] Cell) {
+        System.out.println("Rolled: "+n);
+        System.out.println("Press q to go up, Press z to go down, Press a to go left, Press d to right");
+        Cell currentLoc = play.getLocation();
+        System.out.println(currentLoc.getYPos());   
+        int nY = currentLoc.getYPos()+1;
+        int nX = currentLoc.getXPos()+1;
+        while(n != 0) { // Counter, for the dice to tell how many times they can go.
+            Scanner scan = new Scanner(System.in);
+            String character = scan.nextLine();
 
-        while(n != 0) {
-            //Scanner scan = new Scanner(System.in);
-            //String character = scan.nextLine();
-            //if(character.contains("w")) {
-            //System.out.println(play.getLocation().getXPos() + " " + (play.getLocation().getYPos()+1));
+            if(character.contains("q")) {
+          
+                // Cell f =board.getCells()[nY][currentLoc.getXPos()];
+                //Point loc = new Point(currentLoc.getXPos(), currentLoc.getYPos());
+                moveCharacter(play, board.getCells()[nY][currentLoc.getXPos()]);
+                //Cell.Type cha = play.getCharacterType();
+                //Cell.Type oldRoom = play.getCurrentRoom();
+                //currentLoc.changeType(f.getType());                           
+                //System.out.println(currentLoc);
+                //f.changeType(cha);
+                //play.setCurrentRoom(f.getType());
+                //System.out.println(f);
+                // destination.changeType(play);
+                // System.out.println(loc.y);
+                //System.out.println(loc.y+1);
+                //System.out.println(currentLoc.getYPos()+1);
+                nY++;
+                n--;
+                System.out.println("Remain moves: "+n);
+            }
+             if(character.contains("z")) {
 
-            //moveCharacter(play,new Cell(play.getCharacterType(),play.getLocation().getXPos(),play.getLocation().getYPos()+1));
-            Cell currentLoc = play.getLocation();
-            Point loc = new Point(currentLoc.getXPos(), currentLoc.getYPos());
-            moveCharacter(play, board.getCells()[loc.y+1][loc.x]);
-            n--;
-
-            //}
+               //Cell currentLoc = play.getLocation();
+               // Point loc = new Point(currentLoc.getXPos(), currentLoc.getYPos());
+                moveCharacter(play, board.getCells()[nY-1][currentLoc.getXPos()]);                
+                nY--;
+                //board.getCells()[loc.y][loc.x+1]
+                n--;
+                System.out.println("Remain moves: "+n);
+            }
+             if(character.contains("a")) {
+                // Cell currentLoc = play.getLocation();
+                //Point loc = new Point(currentLoc.getXPos()-1, currentLoc.getYPos());
+               moveCharacter(play, board.getCells()[currentLoc.getYPos()][nX-1]);    
+               nX--;
+                n--;
+                System.out.println("Remain moves: "+n);
+            }
+             if(character.contains("d")) {
+                //  Cell currentLoc = play.getLocation();
+               // Point loc = new Point(currentLoc.getXPos()+1, currentLoc.getYPos());
+                moveCharacter(play, board.getCells()[currentLoc.getYPos()][nX]); 
+                nX++;
+                n--;
+                System.out.println("Remain moves: "+n);
+            }
         }
+        //printMethod(cell);
+
     }
 
 
