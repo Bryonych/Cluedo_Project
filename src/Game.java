@@ -478,7 +478,7 @@ public class Game
        public static void keyRead(int n,Character play) {
         // public static void keyRead(int n,Character play,Cell[][] Cell) {
         System.out.println("Rolled: "+n);
-        System.out.println("Press q to go up, Press z to go down, Press a to go left, Press d to right");
+        System.out.println("Press z to go up, Press q to go down, Press a to go left, Press d to right");
         Cell currentLoc = play.getLocation();
         System.out.println(currentLoc.getYPos());   
         int nY = currentLoc.getYPos()+1;
