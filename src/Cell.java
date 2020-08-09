@@ -87,6 +87,10 @@ public class Cell
     return yPos;
   }
 
+  public void setIsEmpty(boolean empty){
+    this.isEmpty = empty;
+  }
+
 
   @Override
   public boolean equals(Object obj){
@@ -145,6 +149,11 @@ public class Cell
     else if (type.equals(Type.SPANNER)){
       return "F|";
     }
-    else return "_|";
+    else if (type.equals(Type.HALLWAY)) {
+      return "_|";
+    }
+    else {
+      return "_|";
+    }
   }
 }
