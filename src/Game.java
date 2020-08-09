@@ -2,6 +2,9 @@ import java.awt.Point;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * Represents the game of Cleudo
+ */
 public class Game
 {
     //------------------------
@@ -23,20 +26,25 @@ public class Game
     private RoomCard scene;
     private WeaponCard weapon;
     private Character currentTurn;
-    private static Tuple suggestion;
+    private Suggestion suggestion;
     private Card refute;
-    private Tuple accusation;
-    private boolean gameWon = false;
+    private int refutePlayer;
+    private Accusation accusation;
+    private boolean gameWon;
     private static int numPlayers;
-    private static boolean suggestionMade = false;
+    private boolean suggestionMade = false;
+    private boolean suggestionRefuted = false;
+    private boolean accusationMade = false;
+    private int round = 1;
+
 
     //Game Associations
     private List<Board> boards;
     private List<Tuple> tuples;
 
-    //------------------------
-    // CONSTRUCTOR
-    //------------------------
+    /**
+     * Creates a new game
+     */
     public Game(){
         board = createBoard();
         this.numPlayers = numPlayers;
@@ -46,10 +54,9 @@ public class Game
         createCards();
         murderDetails = setMurderDetails();
     }
-
     /**
      * Creates the cells that make up the initial board
-     * @return
+     * @return  The created board
      */
     public static Board createBoard(){
         int x = 30;
@@ -57,28 +64,32 @@ public class Game
         Cell[][] squares = new Cell[x][y];
         for (int col = 0; col < x; col++){
             for (int row = 0; row < y; row++){
+                //Outer walls
                 if (row == 0 || row == 29 || col == 0 || col == 29){
                     squares[row][col] = new Cell(Cell.Type.WALL, col, row);
                 }
+                //Inner horizontal walls
                 else if ((row < 8 && col == 7) || (row < 9 && col == 11) || (row < 9 && col == 18) || (row < 7 && col == 21)
-                || (row > 9 && row < 19 && col == 9) || (row > 8 && row < 16 && col == 21) || (row > 16 && row < 24 && col == 21)
-                || (row > 21 && col == 8) || (row > 20 && col == 11) || (row > 25 && col == 21)
-                || (row > 20 && col == 18)){
+                        || (row > 9 && row < 19 && col == 9) || (row > 8 && row < 16 && col == 21) || (row > 16 && row < 24 && col == 21)
+                        || (row > 21 && col == 8) || (row > 20 && col == 11) || (row > 25 && col == 21)
+                        || (row > 20 && col == 18)){
                     squares[row][col] = new Cell(Cell.Type.WALL, col, row);
                 }
+                //Inner vertical walls
                 else if ((row == 7 &&  col < 8) || (row == 8 && col > 10 && col < 19)|| (row == 6 && col > 21)
-                || (row == 10 && col < 10) || (row == 18 && col < 10) || (row == 9 && col > 21)
-                || (row == 15 && col > 21) || (row == 17 && col > 20) || (row == 23 && col > 20)
-                || (row == 22 && col < 9) || (row == 20 && col > 10 && col < 19) || (row == 26 && col > 20)){
+                        || (row == 10 && col < 10) || (row == 18 && col < 10) || (row == 9 && col > 21)
+                        || (row == 15 && col > 21) || (row == 17 && col > 20) || (row == 23 && col > 20)
+                        || (row == 22 && col < 9) || (row == 20 && col > 10 && col < 19) || (row == 26 && col > 20)){
                     squares[row][col] = new Cell(Cell.Type.WALL, col, row);
                 }
+                //Cellar
                 else if (row > 10 && row < 18 && col > 11 && col < 19){
                     squares[row][col] = new Cell(Cell.Type.WALL, col, row);
                 }
                 else if (row < 7 && col < 7){
                     squares[row][col] = new Cell(Cell.Type.KITCHEN, col, row);
                 }
-                else if (row < 8 && col > 12 && col < 17){
+                else if (row < 8 && col > 11 && col < 18){
                     squares[row][col] = new Cell(Cell.Type.BALLROOM, col, row);
                 }
                 else if (row < 6 && col > 22){
@@ -111,19 +122,18 @@ public class Game
         squares = setWeapons(squares);
         return new Board(squares);
     }
-
     /**
      * Sets doors and start cells in the walls
-     * @param squares
-     * @return
+     * @param squares   Array of cells representing the board
+     * @return          The amended array with doors and start cells
      */
     public static Cell[][] setDoorsAndStart(Cell[][] squares){
         squares[0][10].changeType(Cell.Type.WHITE);
         squares[0][19].changeType(Cell.Type.GREEN);
         squares[7][29].changeType(Cell.Type.PEACOCK);
-        squares[20][0].changeType(Cell.Type.PLUM);
+        squares[20][0].changeType(Cell.Type.MUSTARD);
         squares[29][9].changeType(Cell.Type.SCARLETT);
-        squares[24][29].changeType(Cell.Type.MUSTARD);
+        squares[24][29].changeType(Cell.Type.PLUM);
         squares[7][5].changeType(Cell.Type.DOOR);
         squares[5][11].changeType(Cell.Type.DOOR);
         squares[8][16].changeType(Cell.Type.DOOR);
@@ -144,7 +154,7 @@ public class Game
     }
 
     /**
-     * Creates the characters
+     * Creates the characters and adds them to the list
      */
     public void createCharacters(){
         Character white = new Character("Mrs White",  board.getCells()[0][10], Cell.Type.WHITE);
@@ -162,13 +172,14 @@ public class Game
     }
 
     /**
-     * Creates the players
+     * Creates the players and adds them to the list
      */
     public void setPlayers(){
         int count = 1;
         Stack<Character> CharacterSelection = new Stack<Character>();
         CharacterSelection.addAll(characters);
         int counter = numPlayers;
+        //For each player, allow them to select a character and add them to the players list
         while (counter != 0) {
             ArrayList<Character> temp = new ArrayList<Character>();
             temp.addAll(CharacterSelection);
@@ -191,22 +202,24 @@ public class Game
             }
         }
     }
-
     /**
      * Creates all the rooms and sets the cell where the weapon sits in the room
      */
     public void createRooms(){
-        rooms.add(new Room("Kitchen", board.getCells()[6][5], Cell.Type.KITCHEN, board.getCells()[6][6]));
-        rooms.add(new Room("Ball Room", board.getCells()[5][12], Cell.Type.BALLROOM, board.getCells()[5][13]));
-        rooms.add(new Room("Conservatory", board.getCells()[5][22], Cell.Type.CONSERVATORY, board.getCells()[5][23]));
-        rooms.add(new Room("Dining Room", board.getCells()[13][7], Cell.Type.DINING, board.getCells()[13][8]));
+        rooms.add(new Room("Kitchen", board.getCells()[2][2], Cell.Type.KITCHEN, board.getCells()[2][3]));
+        rooms.add(new Room("Ball Room", board.getCells()[2][14], Cell.Type.BALLROOM, board.getCells()[2][15]));
+        rooms.add(new Room("Conservatory", board.getCells()[2][27], Cell.Type.CONSERVATORY, board.getCells()[2][26]));
+        rooms.add(new Room("Dining Room", board.getCells()[13][2], Cell.Type.DINING, board.getCells()[13][3]));
         rooms.add(new Room("Billiard Room", board.getCells()[13][27], Cell.Type.BILLIARD, board.getCells()[13][26]));
-        rooms.add(new Room("Library", board.getCells()[20][27], Cell.Type.LIBRARY, board.getCells()[20][22]));
+        rooms.add(new Room("Library", board.getCells()[20][27], Cell.Type.LIBRARY, board.getCells()[20][26]));
         rooms.add(new Room("Lounge", board.getCells()[27][2], Cell.Type.LOUNGE, board.getCells()[27][3]));
-        rooms.add(new Room("Hall", board.getCells()[21][15], Cell.Type.HALL, board.getCells()[21][14]));
+        rooms.add(new Room("Hall", board.getCells()[27][14], Cell.Type.HALL, board.getCells()[27][15]));
         rooms.add(new Room("Study", board.getCells()[27][27], Cell.Type.STUDY, board.getCells()[27][26]));
     }
 
+    /**
+     * Creates all the weapons and adds them to the list
+     */
     public void createWeapons(){
         weapons.add(new Weapon("Candlestick", rooms.get(0), Cell.Type.CANDLESTICK));
         weapons.add(new Weapon("Dagger", rooms.get(1), Cell.Type.DAGGER));
@@ -215,7 +228,6 @@ public class Game
         weapons.add(new Weapon("Rope", rooms.get(4), Cell.Type.ROPE));
         weapons.add(new Weapon("Spanner", rooms.get(5), Cell.Type.SPANNER));
     }
-
     /**
      * Creates the cards and adds them to the lists
      */
@@ -271,25 +283,21 @@ public class Game
         allCards.add(spanner);
         weaponCards.add(spanner);
     }
-
     /**
      * Picks a random card from each list to be the murder details
-     * @return
+     * @return  The murder details
      */
     public Tuple setMurderDetails(){
         Random rand = new Random();
         murderer = charCards.get(rand.nextInt(charCards.size()));
         scene = roomCards.get(rand.nextInt(roomCards.size()));
         weapon = weaponCards.get(rand.nextInt(weaponCards.size()));
-        CharacterCard murderer = charCards.get(rand.nextInt(charCards.size()));
-        RoomCard scene = roomCards.get(rand.nextInt(roomCards.size()));
-        WeaponCard weapon = weaponCards.get(rand.nextInt(weaponCards.size()));
+        //Remove the cards from the pack, so the rest can be dealt
         allCards.remove(murderer);
         allCards.remove(scene);
         allCards.remove(weapon);
         return new Tuple(murderer, weapon, scene);
     }
-
     /**
      * Suffles the remaining cards and deals them amongst the players
      */
@@ -302,6 +310,7 @@ public class Game
             }
             players.get(i).setHand(new Hand(newHand, players.get(i)));
         }
+        //Adds the murder cards back in, for future use
         allCards.add(murderer);
         allCards.add(scene);
         allCards.add(weapon);
@@ -309,7 +318,7 @@ public class Game
 
     /**
      * Randomly selects a number between 2 and 12 for the dice roll
-     * @return
+     * @return  The number of the rolled dice
      */
     public int rollDice(){
         dice = 2 + (int)(Math.random()*11);
@@ -317,27 +326,24 @@ public class Game
     }
 
     /**
-     * Checks the accusation made against the murder details. If correct, the player has won. If not, they are excluded
-     * @param murderAccused     Character being accused
-     * @param roomAccused       Room accusation
-     * @param weaponAccused     Weapon accusation
-     * @param accuser           Player making the accusation
+     * Checks if an accusation is correct
+     * @param accusation    The accusaiton to check against the murder details
      */
-    public void checkAccusation(CharacterCard murderAccused, RoomCard roomAccused, WeaponCard weaponAccused, Character accuser){
-        if (murderDetails.getMurderer().equals(murderAccused) && murderDetails.getCrimeScene().equals(roomAccused) && murderDetails.getWeapon().equals(weaponAccused)){
+    public void checkAccusation(Accusation accusation){
+        if (murderDetails.getMurderer().getCharacter().equals(accusation.murderAccused.getCharacter()) && murderDetails.getCrimeScene().getRoom().equals(accusation.roomAccused.getRoom()) && murderDetails.getWeapon().getWeapon().equals(accusation.weaponAccused.getWeapon())){
             System.out.println("Correct! You have won the game!");
             gameWon = true;
         }
         else {
             System.out.println("Incorrect Accusation - you may make no further suggestions");
-            players.remove(accuser);
+            accusation.getAccuser().setSuggestionStatus(false);
         }
     }
 
     /**
-     * Puts the weapon cells to have the weapons in them
-     * @param squares
-     * @return
+     * Puts the weapons in the weapon cells
+     * @param squares   Cells representing the board
+     * @return          The amended cells with the weapons included
      */
     public static Cell[][] setWeapons(Cell[][] squares){
         squares[2][2].changeType(Cell.Type.CANDLESTICK);
@@ -348,28 +354,45 @@ public class Game
         squares[20][27].changeType(Cell.Type.SPANNER);
         return squares;
     }
-
     /**
      * Moves weapon from one room to another
-     * @param moving
-     * @param destination
+     * @param moving        Weapon to be moved
+     * @param destination   Room to move it to
      */
     public void moveWeapon(Weapon moving, Room destination){
         Room current = moving.getLocation();
         Cell moveFrom = current.getWeaponSpot();
         Cell moveTo = destination.getWeaponSpot();
-        moveFrom.changeType(current.getType());
+        boolean occupied = false;
+        Weapon currentWeapon = null;
+        //If there's already a weapon there, swap them
+        if (!moveTo.getType().equals(destination.getType())){
+            for (Weapon w : weapons){
+                if (w.getType().equals(moveTo.getType())){
+                    currentWeapon = w;
+                }
+            }
+            occupied = true;
+        }
+        if (!occupied) {
+            moveFrom.changeType(current.getType());
+        }
+        else {
+            moveFrom.changeType(currentWeapon.getType());
+            currentWeapon.setLocation(current);
+        }
         moveTo.changeType(moving.getType());
+        moving.setLocation(destination);
         printBoard(board.getCells());
 
     }
-
     /**
-     * Moves Chracter
-     * @param moving
-     * @param destination
+     * Moves Chracter on the board
+     * @param moving        Character to be moved
+     * @param destination   Cell to move them to
      */
     public boolean moveCharacter(Character moving, Cell destination){
+        //If move is valid, update both cells and character's room and return true
         if (isValidMove(destination)) {
             Cell current = moving.getLocation();
             current.setIsEmpty(true);
@@ -384,19 +407,20 @@ public class Game
             printBoard(board.getCells());
             return true;
         }
+        //If invalid move
         return false;
     }
 
     /**
-     * checks that the character is staying on the board and not trying to move into any ways
-     * @param destination
-     * @return
+     * Checks that the character is staying on the board and not trying to move into any walls
+     * @param destination   Cell to be moved to
+     * @return              Whether move is valid
      */
     public boolean isValidMove(Cell destination){
-        System.out.println("   yPos   " + destination.getYPos());
+        System.out.println("yPos " + destination.getYPos());
         if (destination.getType().equals(Cell.Type.WALL) || destination.getXPos() < 0 || destination.getXPos() > 29 ||
-        destination.getYPos() < 0 || destination.getYPos() > 29 || destination.getType().equals(Cell.Type.START) || !destination.getIsEmpty()){
-            System.out.println("   false   ");
+                destination.getYPos() < 0 || destination.getYPos() > 29 || destination.getType().equals(Cell.Type.START) || !destination.getIsEmpty()){
+            System.out.println("false");
             return false;
         }
         return true;
@@ -404,8 +428,8 @@ public class Game
 
     /**
      * Moves a character to a room when a suggestion they are the murderer is made
-     * @param moving
-     * @param newRoom
+     * @param moving    Character to be moved
+     * @param newRoom   Room to move them to
      */
     public void moveCharacterToRoom(Character moving, Room newRoom){
         Cell current = moving.getLocation();
@@ -435,6 +459,9 @@ public class Game
 
     }
 
+    /**
+     * Checks the input is valid for selecting number of players and sets field
+     */
     public void checkNumPlayers(){
         try {
             Scanner scan = new Scanner(System.in);
@@ -459,22 +486,34 @@ public class Game
         game.dealCards();
         System.out.flush();
         Cell[][] cell = board.getCells();
-        //printBoard(cell);
+        int count = 0;
+
+        //For testing
+//        System.out.println(game.murderDetails.getMurderer().toString());
+//        System.out.println(game.murderDetails.getWeapon().toString());
+//        System.out.println(game.murderDetails.getCrimeScene().toString());
+
+        //Until the game is finished, allow each player to have a turn in order
         while(!game.gameWon) {
-            int count = 0;
             for (Character play : players) {
+
                 count++;
                 int diceRoll = game.rollDice();
                 System.out.println("Player " + count + " " + play.getName() + " Your Turn");
-                
+                System.out.print(play.getHand());
+
+                System.out.println("Please press D to roll the dice");
+                while(!scan.nextLine().equalsIgnoreCase("d")){
+                    //pausing until dice rolled
+                }
                 System.out.println("You have rolled a: " + diceRoll);
                 printBoard(cell);
-                game.keyRead(diceRoll, play); //Just a temp move method
-                //moveCharacter(play, board.getCells()[6][5]); //used for testing
-                if(play.getCurrentRoom().equals(Cell.Type.KITCHEN) || play.getCurrentRoom().equals(Cell.Type.BALLROOM) || play.getCurrentRoom().equals(Cell.Type.CONSERVATORY) ||
-                play.getCurrentRoom().equals(Cell.Type.DINING) || play.getCurrentRoom().equals(Cell.Type.BILLIARD) || play.getCurrentRoom().equals(Cell.Type.LIBRARY) ||
-                play.getCurrentRoom().equals(Cell.Type.LOUNGE) || play.getCurrentRoom().equals(Cell.Type.HALL) || play.getCurrentRoom().equals(Cell.Type.STUDY)) {
-                    System.out.println("===== Do you want to Make a SUGGESTION ? Press 'Y' or any key to continue on =====");       
+                game.keyRead(diceRoll, play);
+                //If they land in a room, let them make a suggestion
+                if (play.getCurrentRoom().equals(Cell.Type.KITCHEN) || play.getCurrentRoom().equals(Cell.Type.BALLROOM) || play.getCurrentRoom().equals(Cell.Type.CONSERVATORY) ||
+                        play.getCurrentRoom().equals(Cell.Type.DINING) || play.getCurrentRoom().equals(Cell.Type.BILLIARD) || play.getCurrentRoom().equals(Cell.Type.LIBRARY) ||
+                        play.getCurrentRoom().equals(Cell.Type.LOUNGE) || play.getCurrentRoom().equals(Cell.Type.HALL) || play.getCurrentRoom().equals(Cell.Type.STUDY)) {
+                    System.out.println("===== Do you want to Make a SUGGESTION ? Press 'Y' or any key to continue on =====");
                     String character = scan.nextLine();
                     if (character.equalsIgnoreCase("Y")){
                         System.out.println("=== Whats on your HAND for reference === ");
@@ -483,35 +522,41 @@ public class Game
 
                     }
                 }
-
-                //check if a suggestion has been made
-                if (suggestionMade) {
-                    
-                    System.out.println(suggestion.toString());
-                    for (Card c : ((Suggestion) suggestion).getCards()) {
-                        if (play.getHand().getCards().contains(c)) {
-                            System.out.println("Would you like to refute with:\n" + c.toString());
-                            Scanner refuteCheck = new Scanner(System.in);
-                            System.out.println("y for yes, n for no.");
-                            String response = refuteCheck.nextLine();
-                            if (response.equalsIgnoreCase("y")) {
-                                System.out.println("Suggestion refuted!");
-                                suggestion = null;
-                                suggestionMade = false;
-                                break;
-                            }
+                if(game.suggestionMade) {
+                    System.out.println(game.suggestion.toString());
+                    for (Character c : players) {
+                        if (!c.equals(play)) {
+                            int index = players.indexOf(c) +1;
+                            System.out.println("Player " + index + " has refuted your suggestion with:\n");
+                            game.refuteSuggestion(c, game.suggestion);
+                        }
+                    }
+                    if(!game.suggestionRefuted) {
+                        System.out.println("Your suggestion has not been refuted, would you like to make an accusation? (y/n)");
+                        Scanner scan2 = new Scanner(System.in);
+                        if(scan2.nextLine().equalsIgnoreCase("y")) {
+                            game.accusation = game.suggestion.toAccusation();
+                            game.accusationMade = true;
+                            System.out.println("Accusation Made!!\n" + game.accusation.toString());
                         }
                     }
                 }
-
-                //keyRead(1,play); //Just a temp move method
+                if(game.accusationMade) {
+                    System.out.println("Checking Accusation");
+                    game.checkAccusation(game.accusation);
+                    if (game.gameWon) { break; }
+                }
             }
+            count = 0;
+            game.round++;
         }
 
     }
-    ///}
-    //}
- 
+
+    /**
+     * Displays the board on the screen
+     * @param cell  Cells to be displayed
+     */
     public static void printBoard(Cell[][] cell) {
         System.out.println("               Kitchen                          Ball Room                      Conservatory");
         for(int i = 0; i < 30; i++) {
@@ -526,7 +571,6 @@ public class Game
             }
             System.out.print(i + " \t");
             for(int j = 0; j < 30; j++) {
-                //  System.out.print(cell[i][j].getType().toString() + " ");
                 System.out.print(cell[i][j] +" ");
             }
             if (i == 11){
@@ -537,7 +581,6 @@ public class Game
             }
             else if (i == 20){
                 System.out.print(" Library");
-
             }
             System.out.println("");
         }
@@ -545,54 +588,36 @@ public class Game
     }
 
     /**
-     * Making decision on moves a character along the by decides what to do based on the input as the direction .
-     * @param moveNum
-     * @param play
+     * Reads character input for moving the characters
+     * @param n     Number rolled on the dice
+     * @param play  Player whose turn it is
      */
-    public void keyRead(int moveNum,Character play) {
-        System.out.println( play.getName() + " : ");
-        System.out.println("You got " +moveNum + " Moves");
+    public void keyRead(int n,Character play) {
+        System.out.println("Rolled: "+n);
         System.out.println("Press z to go up, Press q to go down, Press a to go left, Press d to right");
-        while(moveNum != 0) { // Counter, for the dice to tell how many times they can go.
+        while(n != 0) { // Counter, for the dice to tell how many times they can go.
             Cell currentLoc = play.getLocation();
             int nY = currentLoc.getYPos()+1;
             int nX = currentLoc.getXPos()+1;
             Scanner scan = new Scanner(System.in);
-            String character = scan.nextLine();     
-            Cell.Type oldRoom = play.getCurrentRoom();
-            if(character.equalsIgnoreCase("q")) {
+            String character = scan.nextLine();
+            if(character.contains("q")) {
                 try{
                     if (moveCharacter(play, board.getCells()[nY][currentLoc.getXPos()])) {
-
-                        if(play.getCurrentRoom().equals(Cell.Type.KITCHEN) || play.getCurrentRoom().equals(Cell.Type.BALLROOM) || play.getCurrentRoom().equals(Cell.Type.CONSERVATORY) ||
-                        play.getCurrentRoom().equals(Cell.Type.DINING) || play.getCurrentRoom().equals(Cell.Type.BILLIARD) || play.getCurrentRoom().equals(Cell.Type.LIBRARY) ||
-                        play.getCurrentRoom().equals(Cell.Type.LOUNGE) || play.getCurrentRoom().equals(Cell.Type.HALL) || play.getCurrentRoom().equals(Cell.Type.STUDY)) {
-
-                            moveNum = 0;
-                            break;
-                        }
-                        moveNum--;
-                        System.out.println("Remain moves: " + moveNum);
+                        n--;
+                        System.out.println("Remain moves: " + n);
                     }
                     else {
-                        System.out.println("Invalid move. Please make another choice");
+                            System.out.println("Invalid move. Please make another choice");
                     }
                 } catch (IndexOutOfBoundsException e) { System.out.println("Invalid move. Please make another choice"); }
 
             }
-            else if(character.equalsIgnoreCase("z")) {
+            else if(character.contains("z")) {
                 try{
                     if (moveCharacter(play, board.getCells()[nY-2][currentLoc.getXPos()])) {
-
-                        if(play.getCurrentRoom().equals(Cell.Type.KITCHEN) || play.getCurrentRoom().equals(Cell.Type.BALLROOM) || play.getCurrentRoom().equals(Cell.Type.CONSERVATORY) ||
-                        play.getCurrentRoom().equals(Cell.Type.DINING) || play.getCurrentRoom().equals(Cell.Type.BILLIARD) || play.getCurrentRoom().equals(Cell.Type.LIBRARY) ||
-                        play.getCurrentRoom().equals(Cell.Type.LOUNGE) || play.getCurrentRoom().equals(Cell.Type.HALL) || play.getCurrentRoom().equals(Cell.Type.STUDY)) {
-
-                            moveNum= 0;
-                            break;
-                        }
-                        moveNum--;
-                        System.out.println("Remain moves: " + moveNum);
+                        n--;
+                        System.out.println("Remain moves: " + n);
                     }
                     else {
                         System.out.println("Invalid move. Please make another choice");
@@ -600,19 +625,11 @@ public class Game
                 } catch (IndexOutOfBoundsException e) { System.out.println("Invalid move. Please make another choice"); }
 
             }
-            else if(character.equalsIgnoreCase("a")) {
+            else if(character.contains("a")) {
                 try{
                     if (moveCharacter(play, board.getCells()[currentLoc.getYPos()][nX-2])) {
-
-                        if(play.getCurrentRoom().equals(Cell.Type.KITCHEN) || play.getCurrentRoom().equals(Cell.Type.BALLROOM) || play.getCurrentRoom().equals(Cell.Type.CONSERVATORY) ||
-                        play.getCurrentRoom().equals(Cell.Type.DINING) || play.getCurrentRoom().equals(Cell.Type.BILLIARD) || play.getCurrentRoom().equals(Cell.Type.LIBRARY) ||
-                        play.getCurrentRoom().equals(Cell.Type.LOUNGE) || play.getCurrentRoom().equals(Cell.Type.HALL) || play.getCurrentRoom().equals(Cell.Type.STUDY)) {
-
-                            moveNum = 0;
-                            break;
-                        }
-                        moveNum--;
-                        System.out.println("Remain moves: " + moveNum);
+                        n--;
+                        System.out.println("Remain moves: " + n);
                     }
                     else {
                         System.out.println("Invalid move. Please make another choice");
@@ -620,19 +637,11 @@ public class Game
                 } catch (IndexOutOfBoundsException e) { System.out.println("Invalid move. Please make another choice"); }
 
             }
-            else if(character.equalsIgnoreCase("d")) {
+            else if(character.contains("d")) {
                 try{
                     if (moveCharacter(play, board.getCells()[currentLoc.getYPos()][nX])) {
-
-                        if(play.getCurrentRoom().equals(Cell.Type.KITCHEN) || play.getCurrentRoom().equals(Cell.Type.BALLROOM) || play.getCurrentRoom().equals(Cell.Type.CONSERVATORY) ||
-                        play.getCurrentRoom().equals(Cell.Type.DINING) || play.getCurrentRoom().equals(Cell.Type.BILLIARD) || play.getCurrentRoom().equals(Cell.Type.LIBRARY) ||
-                        play.getCurrentRoom().equals(Cell.Type.LOUNGE) || play.getCurrentRoom().equals(Cell.Type.HALL) || play.getCurrentRoom().equals(Cell.Type.STUDY)) {
-
-                            moveNum = 0;
-                            break;
-                        }
-                        moveNum--;
-                        System.out.println("Remain moves: " + moveNum);
+                        n--;
+                        System.out.println("Remain moves: " + n);
                     }
                     else {
                         System.out.println("Invalid move. Please make another choice");
@@ -640,14 +649,23 @@ public class Game
                 } catch (IndexOutOfBoundsException e) { System.out.println("Invalid move. Please make another choice"); }
             }
         }
-        //printMethod(cell);
-
     }
 
+
+    /**
+     * Prompts the user to make a suggestion
+     * @param playerCards   Player's hand to be excluded
+     * @param play          Player making the suggestion
+     */
     public void createSuggestion(List<Card> playerCards, Character play) {
         CharacterCard sCharacter = null;
         WeaponCard sWeapon = null;
         RoomCard sRoom = null;
+        for (RoomCard r : roomCards){
+            if (r.getRoom().getType().equals(play.getCurrentRoom())){
+                sRoom = r;
+            }
+        }
         List<CharacterCard> characterChoice = new ArrayList<CharacterCard>();
         List<WeaponCard> weaponChoice = new ArrayList<WeaponCard>();
         List<RoomCard> roomChoice = new ArrayList<RoomCard>();
@@ -662,11 +680,11 @@ public class Game
             }
         }
 
-        for(RoomCard r: roomCards) {
-            if(!playerCards.contains(r)) {
-                roomChoice.add(r);
-            }
-        }
+//        for(RoomCard r: roomCards) {
+//            if(!playerCards.contains(r)) {
+//                roomChoice.add(r);
+//            }
+//        }
 
         System.out.println("Choose a character (enter number of character to choose):");
         int index = 1;
@@ -675,44 +693,36 @@ public class Game
             index++;
         }
         Scanner scan2 = new Scanner(System.in);
-        if(scan2.hasNextInt()) {
-            sCharacter = characterChoice.get(scan2.nextInt() - 1);
-            System.out.println(sCharacter.getName() + " was chosen.");
-        }
-        else {
-            System.out.println("Use numbers to choose character.");
-        }
+            if (scan2.hasNextInt()) {
+                    sCharacter = characterChoice.get(scan2.nextInt() - 1);
+                    System.out.println(sCharacter.getName() + " was chosen.");
+            }
+            else {
+                scan2.next();
+                System.out.println("Use numbers to choose character.");
+                sCharacter = characterChoice.get(scan2.nextInt() - 1);
+                System.out.println(sCharacter.getName() + " was chosen.");
+            }
+
         index = 1;
         System.out.println("Choose a weapon (enter number of weapon to choose):");
         for(WeaponCard w : weaponChoice) {
             System.out.println(index + ". " + w.getName());
             index++;
         }
-        if(scan2.hasNextInt()) {
+        if (scan2.hasNextInt()) {
             sWeapon = weaponChoice.get(scan2.nextInt() - 1);
             System.out.println(sWeapon.getName() + " was chosen.");
         }
         else {
+            scan2.next();
             System.out.println("Use numbers to choose weapon.");
+            sWeapon = weaponChoice.get(scan2.nextInt() - 1);
+            System.out.println(sWeapon.getName() + " was chosen.");
         }
-
         index = 1;
-        //temp code, room to be set by location of player
-        System.out.println("Choose a room (enter number of room to choose):");
-        for(RoomCard r : roomChoice) {
-            System.out.println(index + ". " + r.getName());
-            index++;
-        }
-        if(scan2.hasNextInt()) {
-            sRoom = roomChoice.get(scan2.nextInt() - 1);
-            System.out.println(sRoom.getName() + " is chosen.");
-        }
-        else {
-            System.out.println("Use numbers to choose weapon.");
-        }
-
         if(sCharacter != null && sWeapon != null && sRoom != null) {
-            suggestion = new Suggestion((players.indexOf(play) + 1), sCharacter, sWeapon, sRoom);
+            suggestion = new Suggestion((players.indexOf(play) + 1), play,  sCharacter, sWeapon, sRoom);
             suggestionMade = true;
             System.out.println(suggestion.toString());
             if (!sCharacter.getCharacter().getLocation().equals(sRoom.getRoom().getType())){
@@ -727,8 +737,62 @@ public class Game
         }
     }
 
-    public static void createSuggestion2(List<Card> playerCards, Character play) {
 
+    /**
+     * Produces a list of matching cards from two different lists.
+     * @param playerCards       Card being checked
+     * @param suggestedCards    Suggestion cards to check against
+     * @return
+     */
+    public List<Card> matches(List<Card> playerCards, List<Card> suggestedCards) {
+        List<Card> matchList = new ArrayList<Card>();
+        for(Card sc: suggestedCards) {
+            for(Card pc : playerCards) {
+                if(pc.hashCode() == sc.hashCode()) {
+                    matchList.add(pc);
+                }
+            }
+        }
+        return matchList;
     }
-}
 
+    /**
+     * Checks current player's cards against suggestion and refutes if there is a match
+     * @param play          Player to check for refuting
+     * @param suggestion    Suggestion that has been made
+     */
+    public void refuteSuggestion(Character play, Suggestion suggestion) {
+        List<Card> playerCards = play.getHand().getCards();
+        List<Card> suggestedCards = suggestion.getCards();
+        List<Card> matches = matches(playerCards, suggestedCards);
+        //only 1 card matches create a refuttal with it
+        if(matches.size() == 1) {
+            refute = matches.get(0);
+            refutePlayer = players.indexOf(play) +1;
+            suggestionRefuted = true;
+            suggestionMade = false;
+            System.out.println(refute.toString());
+        }
+        //multiple card matches, player chooses which to make a refuttal
+        else if(matches.size() > 1) {
+            System.out.println("Choose the card to refute with (use card number).");
+            int index = 1;
+            for(Card mc : matches) {
+                System.out.println(index + ".\n" + mc.toString());
+                index++;
+            }
+            Scanner refuteChoice = new Scanner(System.in);
+            if(refuteChoice.hasNextInt()) {
+                refute = matches.get(refuteChoice.nextInt() - 1);
+                refutePlayer = players.indexOf(play) +1;
+                suggestionRefuted = true;
+                suggestionMade = false;
+                System.out.println(play.getName() + " refuted your suggestion with:\n" + refute.toString());
+            }
+            else {
+                System.out.println("Error with choice, please use a number between 1 and " + matches.size());
+            }
+        }
+    }
+
+}
