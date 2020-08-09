@@ -26,7 +26,7 @@ public class Game
     private static Tuple suggestion;
     private Card refute;
     private Tuple accusation;
-    private boolean gameWon;
+    private boolean gameWon = false;
     private static int numPlayers;
     private static boolean suggestionMade = false;
 
@@ -38,15 +38,14 @@ public class Game
     //------------------------
     // CONSTRUCTOR
     //------------------------
-    public Game(int numPlayers){
+    public Game(){
         board = createBoard();
         this.numPlayers = numPlayers;
         createRooms();
         createWeapons();
-        setPlayers();
+        createCharacters();
         createCards();
         murderDetails = setMurderDetails();
-        dealCards();
     }
     /**
      * Creates the cells that make up the initial board
@@ -142,11 +141,11 @@ public class Game
         squares[26][22].changeType(Cell.Type.DOOR);
         return squares;
     }
+
     /**
-     * Creates the Characters and players
+     * Creates the characters
      */
-    public static void setPlayers(){
-        int count = 1;
+    public void createCharacters(){
         Character white = new Character("Mrs White",  board.getCells()[0][10], Cell.Type.WHITE);
         Character green = new Character("Mr Green", board.getCells()[0][19], Cell.Type.GREEN);
         Character peacock = new Character("Mrs Peacock", board.getCells()[7][29], Cell.Type.PEACOCK);
@@ -159,6 +158,13 @@ public class Game
         characters.add(plum);
         characters.add(scarlett);
         characters.add(mustard);
+    }
+
+    /**
+     * Creates the players
+     */
+    public void setPlayers(){
+        int count = 1;
         Stack<Character> CharacterSelection = new Stack<Character>();
         CharacterSelection.addAll(characters);
         int counter = numPlayers;
@@ -358,16 +364,37 @@ public class Game
      * @param moving
      * @param destination
      */
-    public void moveCharacter(Character moving, Cell destination){
-        Cell current = moving.getLocation();
-        Point loc = new Point(current.getXPos(), current.getYPos());
-        Cell.Type oldRoom = moving.getCurrentRoom();
-        Cell.Type character = moving.getCharacterType();
-        moving.setCurrentRoom(destination.getType());
-        board.changeCell(new Cell(oldRoom, loc.x, loc.y), loc.x, loc.y);
-        destination.changeType(character);
-        moving.setLocation(destination);
-        printBoard(board.getCells());
+    public boolean moveCharacter(Character moving, Cell destination){
+        if (isValidMove(destination)) {
+            Cell current = moving.getLocation();
+            current.setIsEmpty(true);
+            Point loc = new Point(current.getXPos(), current.getYPos());
+            Cell.Type oldRoom = moving.getCurrentRoom();
+            Cell.Type character = moving.getCharacterType();
+            moving.setCurrentRoom(destination.getType());
+            board.changeCell(new Cell(oldRoom, loc.x, loc.y), loc.x, loc.y);
+            destination.changeType(character);
+            moving.setLocation(destination);
+            destination.setIsEmpty(false);
+            printBoard(board.getCells());
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * checks that the character is staying on the board and not trying to move into any ways
+     * @param destination
+     * @return
+     */
+    public boolean isValidMove(Cell destination){
+        System.out.println("yPos " + destination.getYPos());
+        if (destination.getType().equals(Cell.Type.WALL) || destination.getXPos() < 0 || destination.getXPos() > 29 ||
+                destination.getYPos() < 0 || destination.getYPos() > 29 || destination.getType().equals(Cell.Type.START) || !destination.getIsEmpty()){
+            System.out.println("false");
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -377,65 +404,95 @@ public class Game
      */
     public void moveCharacterToRoom(Character moving, Room newRoom){
         Cell current = moving.getLocation();
+        current.setIsEmpty(true);
         Cell.Type oldRoom = moving.getCurrentRoom();
         Cell.Type character = moving.getCharacterType();
         moving.setCurrentRoom(newRoom.getType());
         current.changeType(oldRoom);
-        newRoom.getCharacterSpot().changeType(character);
+        if (newRoom.getCharacterSpot().getIsEmpty()) {
+            newRoom.getCharacterSpot().changeType(character);
+            newRoom.getCharacterSpot().setIsEmpty(false);
+            moving.setLocation(newRoom.getCharacterSpot());
+        }
+        else {
+            Cell spot = newRoom.getCharacterSpot();
+            while (!spot.getIsEmpty()){
+                spot = board.getCells()[spot.getYPos()][spot.getXPos()+1];
+                if (spot.getType().equals(Cell.Type.WALL)){
+                    spot = board.getCells()[spot.getYPos()-1][spot.getXPos()-1];
+                }
+            }
+            spot.changeType(character);
+            spot.setIsEmpty(false);
+            moving.setLocation(spot);
+        }
         printBoard(board.getCells());
 
     }
 
+    public void checkNumPlayers(){
+        try {
+            Scanner scan = new Scanner(System.in);
+            System.out.println("How many players?");
+            numPlayers = scan.nextInt();
+            if (numPlayers < 2 || numPlayers > 6){
+                System.out.println("Number must bet 2 - 6. How many players?");
+                checkNumPlayers();
+            }
 
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid Number. Please select a number between 2 - 6");
+            checkNumPlayers();
+        }
+    }
 
     public static void main(String[] args) throws NumberFormatException, IOException{
         Scanner scan = new Scanner(System.in);
-        System.out.println("How many players?");
-        numPlayers = scan.nextInt();
-        Game game = new Game(numPlayers);
+        Game game = new Game();
+        game.checkNumPlayers();
+        game.setPlayers();
+        game.dealCards();
         System.out.flush();
         Cell[][] cell = board.getCells();
         //printBoard(cell);
-        int count = 0;
-        for(Character play : players) {
-            count++;
-            int diceRoll = game.rollDice();
-            System.out.println("Player " + count + " " + play.getName() + " Your Turn");
-            System.out.print(play.getHand());
-            while(!scan.nextLine().equalsIgnoreCase("d")){
-                System.out.println("Press 'D' key to roll the dice");
+        while(!game.gameWon) {
+            int count = 0;
+            for (Character play : players) {
+                count++;
+                int diceRoll = game.rollDice();
+                System.out.println("Player " + count + " " + play.getName() + " Your Turn");
+                System.out.print(play.getHand());
+                System.out.println("You have rolled a: " + diceRoll);
+                printBoard(cell);
+                game.keyRead(diceRoll, play); //Just a temp move method
+                //moveCharacter(play, board.getCells()[6][5]); //used for testing
+                if (play.getCurrentRoom().equals(Cell.Type.KITCHEN) || play.getCurrentRoom().equals(Cell.Type.BALLROOM) || play.getCurrentRoom().equals(Cell.Type.CONSERVATORY) ||
+                        play.getCurrentRoom().equals(Cell.Type.DINING) || play.getCurrentRoom().equals(Cell.Type.BILLIARD) || play.getCurrentRoom().equals(Cell.Type.LIBRARY) ||
+                        play.getCurrentRoom().equals(Cell.Type.LOUNGE) || play.getCurrentRoom().equals(Cell.Type.HALL) || play.getCurrentRoom().equals(Cell.Type.STUDY)) {
 
-            }
-            //System.out.println("You have rolled a: " + diceRoll + "\nPlease move using the WASD keys");
-            printBoard(cell);
-            game.keyRead(diceRoll,play); //Just a temp move method
-            //moveCharacter(play, board.getCells()[6][5]); //used for testing
-            if(play.getCurrentRoom().equals(Cell.Type.KITCHEN) || play.getCurrentRoom().equals(Cell.Type.BALLROOM) || play.getCurrentRoom().equals(Cell.Type.CONSERVATORY) ||
-                    play.getCurrentRoom().equals(Cell.Type.DINING) || play.getCurrentRoom().equals(Cell.Type.BILLIARD) || play.getCurrentRoom().equals(Cell.Type.LIBRARY) ||
-                    play.getCurrentRoom().equals(Cell.Type.LOUNGE) || play.getCurrentRoom().equals(Cell.Type.HALL) || play.getCurrentRoom().equals(Cell.Type.STUDY)) {
-
-                game.createSuggestion(play.getHand().getCards(), play);
-            }
-            //check if a suggestion has been made
-            if(suggestionMade) {
-                System.out.println(suggestion.toString());
-                for(Card c : ((Suggestion) suggestion).getCards()) {
-                    if(play.getHand().getCards().contains(c)) {
-                        System.out.println("Would you like to refute with:\n" + c.toString());
-                        Scanner refuteCheck = new Scanner(System.in);
-                        System.out.println("y for yes, n for no.");
-                        String response = refuteCheck.nextLine();
-                        if(response.equalsIgnoreCase("y")) {
-                            System.out.println("Suggestion refuted!");
-                            suggestion = null;
-                            suggestionMade = false;
-                            break;
+                    game.createSuggestion(play.getHand().getCards(), play);
+                }
+                //check if a suggestion has been made
+                if (suggestionMade) {
+                    System.out.println(suggestion.toString());
+                    for (Card c : ((Suggestion) suggestion).getCards()) {
+                        if (play.getHand().getCards().contains(c)) {
+                            System.out.println("Would you like to refute with:\n" + c.toString());
+                            Scanner refuteCheck = new Scanner(System.in);
+                            System.out.println("y for yes, n for no.");
+                            String response = refuteCheck.nextLine();
+                            if (response.equalsIgnoreCase("y")) {
+                                System.out.println("Suggestion refuted!");
+                                suggestion = null;
+                                suggestionMade = false;
+                                break;
+                            }
                         }
                     }
                 }
-            }
-            //keyRead(1,play); //Just a temp move method
+                //keyRead(1,play); //Just a temp move method
 
+            }
         }
 
 
@@ -477,64 +534,60 @@ public class Game
 
 
     public void keyRead(int n,Character play) {
-        // public static void keyRead(int n,Character play,Cell[][] Cell) {
         System.out.println("Rolled: "+n);
         System.out.println("Press z to go up, Press q to go down, Press a to go left, Press d to right");
-
-        //System.out.println(currentLoc.getYPos());
-
         while(n != 0) { // Counter, for the dice to tell how many times they can go.
             Cell currentLoc = play.getLocation();
             int nY = currentLoc.getYPos()+1;
             int nX = currentLoc.getXPos()+1;
             Scanner scan = new Scanner(System.in);
             String character = scan.nextLine();
-
             if(character.contains("q")) {
+                try{
+                    if (moveCharacter(play, board.getCells()[nY][currentLoc.getXPos()])) {
+                        n--;
+                        System.out.println("Remain moves: " + n);
+                    }
+                    else {
+                            System.out.println("Invalid move. Please make another choice");
+                    }
+                } catch (IndexOutOfBoundsException e) { System.out.println("Invalid move. Please make another choice"); }
 
-                // Cell f =board.getCells()[nY][currentLoc.getXPos()];
-                //Point loc = new Point(currentLoc.getXPos(), currentLoc.getYPos());
-                moveCharacter(play, board.getCells()[nY][currentLoc.getXPos()]);
-                //Cell.Type cha = play.getCharacterType();
-                //Cell.Type oldRoom = play.getCurrentRoom();
-                //currentLoc.changeType(f.getType());
-                //System.out.println(currentLoc);
-                //f.changeType(cha);
-                //play.setCurrentRoom(f.getType());
-                //System.out.println(f);
-                // destination.changeType(play);
-                // System.out.println(loc.y);
-                //System.out.println(loc.y+1);
-                //System.out.println(currentLoc.getYPos()+1);
-                //nY++;
-                n--;
-                System.out.println("Remain moves: "+n);
             }
             else if(character.contains("z")) {
+                try{
+                    if (moveCharacter(play, board.getCells()[nY-2][currentLoc.getXPos()])) {
+                        n--;
+                        System.out.println("Remain moves: " + n);
+                    }
+                    else {
+                        System.out.println("Invalid move. Please make another choice");
+                    }
+                } catch (IndexOutOfBoundsException e) { System.out.println("Invalid move. Please make another choice"); }
 
-                //Cell currentLoc = play.getLocation();
-                // Point loc = new Point(currentLoc.getXPos(), currentLoc.getYPos());
-                moveCharacter(play, board.getCells()[nY-1][currentLoc.getXPos()]);
-                //nY--;
-                //board.getCells()[loc.y][loc.x+1]
-                n--;
-                System.out.println("Remain moves: "+n);
             }
             else if(character.contains("a")) {
-                // Cell currentLoc = play.getLocation();
-                //Point loc = new Point(currentLoc.getXPos()-1, currentLoc.getYPos());
-                moveCharacter(play, board.getCells()[currentLoc.getYPos()][nX-1]);
-                //nX--;
-                n--;
-                System.out.println("Remain moves: "+n);
+                try{
+                    if (moveCharacter(play, board.getCells()[currentLoc.getYPos()][nX-2])) {
+                        n--;
+                        System.out.println("Remain moves: " + n);
+                    }
+                    else {
+                        System.out.println("Invalid move. Please make another choice");
+                    }
+                } catch (IndexOutOfBoundsException e) { System.out.println("Invalid move. Please make another choice"); }
+
             }
             else if(character.contains("d")) {
-                //  Cell currentLoc = play.getLocation();
-                // Point loc = new Point(currentLoc.getXPos()+1, currentLoc.getYPos());
-                moveCharacter(play, board.getCells()[currentLoc.getYPos()][nX]);
-                //nX++;
-                n--;
-                System.out.println("Remain moves: "+n);
+                try{
+                    if (moveCharacter(play, board.getCells()[currentLoc.getYPos()][nX])) {
+                        n--;
+                        System.out.println("Remain moves: " + n);
+                    }
+                    else {
+                        System.out.println("Invalid move. Please make another choice");
+                    }
+                } catch (IndexOutOfBoundsException e) { System.out.println("Invalid move. Please make another choice"); }
             }
         }
         //printMethod(cell);
