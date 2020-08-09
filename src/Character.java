@@ -1,24 +1,18 @@
-/*PLEASE DO NOT EDIT THIS CODE*/
-/*This code was generated using the UMPLE 1.30.0.5074.a43557235 modeling language!*/
-
 
 import java.util.*;
 
-// line 49 "model.ump"
-// line 143 "model.ump"
+/**
+ * Represents a character in the game
+ */
 public class Character
 {
 
-  //------------------------
-  // MEMBER VARIABLES
-  //------------------------
-
-  //Character Attributes
   private String name;
   private Hand hand;
   private Cell location;
   private Cell.Type currentRoom;
   private Cell.Type characterType;
+  private boolean makeSuggestions = true;
 
 
   //------------------------
@@ -67,6 +61,19 @@ public class Character
   public Hand getHand()
   {
     return hand;
+  }
+
+  public boolean canMakeSuggestions() {
+    if(makeSuggestions) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  public void setSuggestionStatus(boolean value) {
+    makeSuggestions = value;
   }
 
   @Override
