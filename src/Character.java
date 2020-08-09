@@ -54,6 +54,10 @@ public class Character
     return location;
   }
 
+  public void setLocation(Cell newLoc){
+    this.location = newLoc;
+  }
+
 
   public String getName()
   {
