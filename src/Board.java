@@ -4,8 +4,6 @@
 
 import java.util.*;
 
-// line 18 "model.ump"
-// line 117 "model.ump"
 public class Board
 {
 
@@ -29,8 +27,9 @@ public class Board
     return squares;
   }
 
-
-
+  public void changeCell(Cell newCell, int xPos, int yPos){
+    squares[yPos][xPos] = newCell;
+  }
 
 
 }
