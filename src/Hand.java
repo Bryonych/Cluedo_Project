@@ -4,16 +4,13 @@
 
 import java.util.*;
 
-// line 89 "model.ump"
-// line 178 "model.ump"
+/**
+ * Stores a player's hand
+ */
 public class Hand
 {
 
-  //------------------------
-  // MEMBER VARIABLES
-  //------------------------
 
-  //Hand Attributes
   private List<Card> cards = new ArrayList<Card>();
   Character player;
 
@@ -27,11 +24,6 @@ public class Hand
     cards = aCards;
     this.player = player;
   }
-
-  //------------------------
-  // INTERFACE
-  //------------------------
-
 
   public List<Card> getCards()
   {
