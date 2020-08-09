@@ -4,14 +4,12 @@
 
 import java.util.*;
 
+/**
+ * Represents the board of the game
+ */
 public class Board
 {
 
-  //------------------------
-  // MEMBER VARIABLES
-  //------------------------
-
-  //Board Attributes
   private Cell[][] squares;
 
   //------------------------
