@@ -2,17 +2,11 @@
 /*This code was generated using the UMPLE 1.30.0.5074.a43557235 modeling language!*/
 
 
-
-// line 29 "model.ump"
-// line 128 "model.ump"
+/**
+ * Represents a cell on the board
+ */
 public class Cell
 {
-
-  //------------------------
-  // MEMBER VARIABLES
-  //------------------------
-
-  //Cell Attributes
 
   private boolean isEmpty = true;
   private int xPos;
@@ -59,10 +53,6 @@ public class Cell
     yPos = aYPos;
   }
 
-  //------------------------
-  // INTERFACE
-  //------------------------
-
   public void changeType(Type type){
     this.type = type;
   }
@@ -70,7 +60,6 @@ public class Cell
   public Type getType() {
     return type;
   }
-
 
   public boolean getIsEmpty()
   {
@@ -90,7 +79,6 @@ public class Cell
   public void setIsEmpty(boolean empty){
     this.isEmpty = empty;
   }
-
 
   @Override
   public boolean equals(Object obj){
