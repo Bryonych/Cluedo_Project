@@ -1,15 +1,11 @@
 import java.util.*;
 
-// line 37 "model.ump"
-// line 133 "model.ump"
+/**
+ * Represents a room in the game
+ */
 public class Room
 {
 
-    //------------------------
-    // MEMBER VARIABLES
-    //------------------------
-
-    //Room Attributes
     private String name;
     private Cell weaponSpot;
     private Cell characterSpot;
@@ -29,10 +25,6 @@ public class Room
         this.characterSpot = characterSpot;
 
     }
-
-    //------------------------
-    // INTERFACE
-    //------------------------
 
    public Cell getCharacterSpot(){
         return characterSpot;

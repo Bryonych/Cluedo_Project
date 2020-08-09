@@ -1,61 +1,42 @@
 import java.util.*;
 
-// line 58 "model.ump"
-// line 150 "model.ump"
+/**
+ * Represents the envelope that stores the murder details
+ */
 public class Tuple
 {
 
-    //------------------------
-    // MEMBER VARIABLES
-    //------------------------
-
-    //Tuple Attributes
-    private CharacterCard murderer;
-    private WeaponCard weapon;
-    private RoomCard crimeScene;
+  private CharacterCard murderer;
+  private WeaponCard weapon;
+  private RoomCard crimeScene;
 
 
+  //------------------------
+  // CONSTRUCTOR
+  //------------------------
 
-    //------------------------
-    // CONSTRUCTOR
-    //------------------------
+  public Tuple(CharacterCard aMurderer, WeaponCard aWeapon, RoomCard aCrimeScene)
+  {
+    murderer = aMurderer;
+    weapon = aWeapon;
+    crimeScene = aCrimeScene;
 
-    public Tuple(CharacterCard aMurderer, WeaponCard aWeapon, RoomCard aCrimeScene)
-    {
-        murderer = aMurderer;
-        weapon = aWeapon;
-        crimeScene = aCrimeScene;
+  }
 
-    }
+  public CharacterCard getMurderer()
+  {
+    return murderer;
+  }
 
-    //------------------------
-    // INTERFACE
-    //------------------------
+  public WeaponCard getWeapon()
+  {
+    return weapon;
+  }
 
-
-    public CharacterCard getMurderer()
-    {
-        return murderer;
-    }
-
-    public WeaponCard getWeapon()
-    {
-        return weapon;
-    }
-
-    public RoomCard getCrimeScene()
-    {
-        return crimeScene;
-    }
+  public RoomCard getCrimeScene()
+  {
+    return crimeScene;
+  }
 
 
-
-    public String toString()
-    {
-        return super.toString() + "["+ "]" + System.getProperties().getProperty("line.separator") +
-                "  " + "murderer" + "=" + (getMurderer() != null ? !getMurderer().equals(this)  ? getMurderer().toString().replaceAll("  ","    ") : "this" : "null") + System.getProperties().getProperty("line.separator") +
-                "  " + "weapon" + "=" + (getWeapon() != null ? !getWeapon().equals(this)  ? getWeapon().toString().replaceAll("  ","    ") : "this" : "null") + System.getProperties().getProperty("line.separator") +
-                "  " + "crimeScene" + "=" + (getCrimeScene() != null ? !getCrimeScene().equals(this)  ? getCrimeScene().toString().replaceAll("  ","    ") : "this" : "null");
-    }
 }
-

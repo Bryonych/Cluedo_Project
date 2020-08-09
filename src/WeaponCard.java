@@ -1,11 +1,9 @@
+/**
+ * Represents a weapon card in the game
+ */
 public class WeaponCard extends Card
 {
 
-    //------------------------
-    // MEMBER VARIABLES
-    //------------------------
-
-    //WeaponCard Attributes
     private String name;
     private Weapon weapon;
 
@@ -19,11 +17,6 @@ public class WeaponCard extends Card
         this.name = name;
         this.weapon = weapon;
     }
-
-    //------------------------
-    // INTERFACE
-    //------------------------
-
 
     public String getName()
     {

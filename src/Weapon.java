@@ -1,15 +1,11 @@
 import java.util.*;
 
-// line 43 "model.ump"
-// line 138 "model.ump"
+/**
+ * Represents a weapon in the game
+ */
 public class Weapon
 {
 
-    //------------------------
-    // MEMBER VARIABLES
-    //------------------------
-
-    //Weapon Attributes
     private String name;
     private Room location;
     private Cell.Type weaponType;
@@ -27,10 +23,6 @@ public class Weapon
 
     }
 
-    //------------------------
-    // INTERFACE
-    //------------------------
-
     public Cell.Type getType(){
         return weaponType;
     }
@@ -43,6 +35,10 @@ public class Weapon
     public Room getLocation()
     {
         return location;
+    }
+
+    public void setLocation(Room newRoom) {
+        this.location = newRoom;
     }
 
     @Override
