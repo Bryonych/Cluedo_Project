@@ -489,11 +489,6 @@ public class Game
         Cell[][] cell = board.getCells();
         int count = 0;
 
-        //For testing
-        System.out.println(game.murderDetails.getMurderer().toString());
-        System.out.println(game.murderDetails.getWeapon().toString());
-        System.out.println(game.murderDetails.getCrimeScene().toString());
-
         //Until the game is finished, allow each player to have a turn in order
         while(!game.gameWon) {
             for (Character play : players) {
